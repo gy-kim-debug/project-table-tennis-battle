@@ -4,8 +4,13 @@ const Rally = preload("res://scripts/core/rally_manager.gd")
 const Combat = preload("res://scripts/core/battle_manager.gd")
 const Judge = preload("res://scripts/core/timing_judge.gd")
 signal pause_requested
+signal difficulty_requested(index: int)
 signal restart_requested
 
+var difficulty_picker: OptionButton
+var pressure_label: Label
+var pattern_label: Label
+var subtitle: Label
 var root: Control
 var count_label: Label
 var best_label: Label
@@ -36,7 +41,7 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	_label("ONE TAP / RALLY", Vector2(22, 22), Vector2(220, 26), 22, Color("fff4d2"))
-	_label("HP BATTLE PROTOTYPE  ·  PHASE 02", Vector2(23, 53), Vector2(250, 20), 11, Color("829aae"))
+	subtitle = _label("NORMAL · HP BATTLE", Vector2(23, 53), Vector2(250, 20), 11, Color("829aae"))
 	count_label = _label("00", Vector2(22, 108), Vector2(94, 30), 24, Color("fff4d2"))
 	_label("RETURNS", Vector2(23, 133), Vector2(100, 18), 10, Color("829aae"))
 	best_label = _label("BEST 00", Vector2(184, 112), Vector2(145, 20), 14, Color("b9dfcb"))
@@ -53,7 +58,7 @@ func _ready() -> void:
 	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overlay = Panel.new()
 	overlay.position = Vector2(24, 244)
-	overlay.size = Vector2(312, 154)
+	overlay.size = Vector2(312, 218)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color("0b1020")
 	style.border_color = Color("54c7e6")
@@ -76,6 +81,22 @@ func _ready() -> void:
 	restart_button.reparent(overlay)
 	restart_button.position = Vector2(161, 64)
 	restart_button.pressed.connect(func(): restart_requested.emit())
+	difficulty_picker = OptionButton.new()
+	difficulty_picker.position = Vector2(15, 124)
+	difficulty_picker.size = Vector2(282, 34)
+	difficulty_picker.focus_mode = Control.FOCUS_NONE
+	difficulty_picker.add_theme_font_size_override("font_size", 13)
+	for item in ["EASY", "NORMAL", "HARD"]:
+		difficulty_picker.add_item(item)
+	difficulty_picker.select(1)
+	difficulty_picker.item_selected.connect(func(index: int): difficulty_requested.emit(index))
+	overlay.add_child(difficulty_picker)
+	var note: Label = _label("Changing difficulty restarts the battle", Vector2.ZERO, Vector2(282, 18), 10, Color("829aae"))
+	note.reparent(overlay)
+	note.position = Vector2(15, 164)
+	pressure_label = _label("ENEMY PRESSURE 0 / 100", Vector2.ZERO, Vector2(282, 20), 11, Color("ffd166"))
+	pressure_label.reparent(overlay)
+	pressure_label.position = Vector2(15, 184)
 	_label("ENEMY", Vector2(22, 74), Vector2(120, 16), 10, Color("ef7869"))
 	enemy_hp_label = _label("100 / 100", Vector2(218, 74), Vector2(118, 16), 10, Color("fff4d2"))
 	enemy_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -85,6 +106,7 @@ func _ready() -> void:
 	player_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	player_hp_bar = _hp_bar(Vector2(22, 511), Color("54c7e6"))
 	defense_label = _label("", Vector2(22, 160), Vector2(148, 20), 11, Color("b9dfcb"))
+	pattern_label = _label("BASIC RETURN", Vector2(22, 183), Vector2(148, 18), 10, Color("fff4d2"))
 	_build_result_panel()
 	get_viewport().size_changed.connect(_layout_safe_area)
 	_layout_safe_area()
@@ -170,7 +192,13 @@ func update_state(model: RefCounted, now_us: int, paused: bool, combat: RefCount
 		status_label.text = "STRONG BALL — time your swing"
 		if combat != null:
 			status_label.text = "STRONG BALL — missing costs %d HP" % combat.config.strong_damage
+	pattern_label.text = model.pattern.display_name if model.ball_visible() else "NEXT SERVE"
 	if combat != null:
+		pressure_label.text = "ENEMY PRESSURE %d / %d" % [combat.pressure.value, combat.config.pressure_max]
+		if combat.difficulty != null:
+			subtitle.text = combat.difficulty.display_name + " · HP BATTLE"
+			var ids: Array[String] = ["easy", "normal", "hard"]
+			difficulty_picker.select(ids.find(combat.difficulty.difficulty_id))
 		_update_hp(enemy_hp_bar, enemy_hp_label, combat.enemy_hp, combat.config.max_hp)
 		_update_hp(player_hp_bar, player_hp_label, combat.player_hp, combat.config.max_hp)
 		enemy_hp_bar.modulate = Color("ffd166") if now < enemy_hit_until else Color.WHITE

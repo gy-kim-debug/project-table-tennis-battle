@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/pattern_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+pattern_id = "pattern_05"
+display_name = "TEMPO CHANGE"
+incoming_seconds = 1.95
+return_seconds = 0.85
+bounce_fraction = 0.68
+start_point = Vector3(0, 0, 16)
+hit_point = Vector3(0.15, 1, 16)
+arc_height = 26.0
+pattern_difficulty = 55.0
+strong_attack = false
+travel_exponent = 0.65
+lateral_sway = -0.1

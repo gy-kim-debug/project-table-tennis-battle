@@ -1,4 +1,4 @@
-# 기술 설계 및 Phase 1~2 구현
+# 기술 설계 및 Phase 1~3 구현
 
 아래 전체 전투 구조는 초기 설계다. 실제 Phase 1 구현은 하단에 별도로 기록했다. Godot 4.6.3 stable을 확인했다. 모든 시스템을 Autoload로 만들지 않는다.
 
@@ -106,7 +106,7 @@ Godot 터치→마우스 합성을 활성화하고 마우스→터치 합성은 
 Safe Area UI는 iOS에서 display rect를 screen transform 역변환한 뒤 패널을 안전 영역 안으로 스케일한다. 현재 데스크톱에서만 검증했고 실제 iOS 검증은 미완료. World는 9:16 고정 레터박스이며 기종별 필수 요소가 잘리지 않는지는 Phase 6 검수 대상이다. 오디오/ConfigFile/HP/AI는 아직 구현하지 않았다.
 
 
-## 현재 구현 확장 (Phase 2)
+## Phase 2 구현 기록
 씬 구성은 유지하며 Battle(Node)가 BattleManager(RefCounted)를 소유한다. BattleManager → RallyManager/EnemyAI, RallyManager → TimingJudge/PatternData/EnemyAI. CourtView/UI는 출력만 담당한다. BattleManager가 RallyManager의 종료 Signal을 연결하여 HP를 처리한다. Autoload/외부 의존성 추가 없음.
 
 새 파일:
@@ -126,3 +126,20 @@ AI를 전달하지 않은 순수 RallyManager는 기존 Phase 1 무조건 리턴
 UI: 상대 HP 상단 y94, 플레이어 HP 하단 y511, 314×8px ProgressBar, 수치 별도 표시. 기본 theme font의 최소 높이를 제거하고 최종 크기를 재설정해 리턴 수/판정과 겹치지 않는다. 피격 시 캐릭터 색/피해량과 HP 강조, 상대 수비 판정, 강한 공 표시. 결과 패널은 전투 종료 시 표시하며 Pause를 차단한다. 결과 PLAY AGAIN은 터치로 재시작 가능. 정지 중 R/Restart는 기존 정지를 유지하고, 종료 후 재시작은 수동 정지를 해제한다. focus/background 정지는 별도로 유지한다.
 
 자동 검증은 기존 302개에 전투/AI/실제 씬 결과 UI를 확장했다. 화면 검사 일부는 테스트 게임 시계를 제어하여 기다림을 줄이며 해당 결과를 실제 경기 플레이 시간 검증으로 보고하지 않는다. 신호/이벤트 식별자와 HP는 순수 모델에서 검사한다.
+
+
+## 현재 구현 확장 (Phase 3)
+새 파일: difficulty_config.gd, pressure_system.gd, pattern_catalog.gd, difficulty/{easy,normal,hard}.tres, patterns/{fast_smash,high_lob,low_drive,tempo_change}.tres. basic_return.tres도 이름/강도/난이도/리듬 데이터를 포함한다. 순수 모델과 출력 분리를 유지하고 Autoload/외부 의존성은 추가하지 않았다.
+
+BattleManager는 PressureSystem과 선택 DifficultyConfig를 소유하고 RallyManager/EnemyAI에 전달한다. 일반 씬은 패턴 카탈로그 전체와 보통 난이도로 초기화한다. 순수 Phase 1/2 테스트는 선택적으로 카탈로그를 생략하여 단일 패턴 루프를 유지한다.
+RallyManager._launch에서 EnemyAI.select_pattern이 가중치를 사용해 5개 Resource 중 하나를 선택한다. incoming_duration = pattern.incoming_seconds × difficulty.flight_multiplier, target_us = phase_start_us + duration_us. 바운드/표시/판정이 같은 실제 시간 기준을 사용한다. 리턴 시간은 해당 패턴의 return_seconds이다.
+PatternData.sample은 높이를 원래 시간 비율로 계산하고 깊이 진행을 travel_exponent로 변형한다. 좌우 sway는 시작/타격점에서 0이므로 모든 패턴은 같은 타격점으로 수렴한다. 조기 입력 래치와 늦은 입력 리턴의 연속성은 유지한다.
+
+입력 성공 → pressure.player_judgement(grade) → 공 도착/리턴 → AI defend(power,pressure,pattern_difficulty) → pressure.enemy_defense(grade) → 수비 성공 시 새 패턴, Miss 시 기존 HP 경로. 플레이어 Miss는 pressure.reset 후 기존 피해 경로. 중복 입력은 PressureSystem을 호출하기 전에 거절한다. 압박은 시간에 따라 감소하지 않는다. 새 전투/난이도 변경은 RNG/압박/HP/이벤트 식별자를 초기화한다.
+
+EnemyAI의 하나의 RNG가 패턴 선택과 수비 난수를 소비한다. weighted selection은 음수/모두 0 가중치를 거절하고 0 가중치 패턴을 고르지 않는다. DifficultyConfig의 능력/속도/가중치는 공유 Resource를 읽기만 하며 변경 시 다른 프로필의 값을 수정하지 않는다.
+BattleManager.set_difficulty(profile,now) → 프로필 전달 → start로 새 전투. Battle(Node)의 difficulty_requested Signal이 이를 호출하며 UI/피격/결과 표시를 정리하고 기존 수동 정지를 유지한다. P/Resume 또는 터치 Resume으로 이어간다. 전투 중 별도 조작 버튼을 추가하지 않았다.
+
+UI: 상단 난이도, 좌측 패턴 이름, Pause 메뉴 OptionButton과 압박 수치. 메뉴 변경 안내가 전투 리셋을 명시한다. 테스트는 실제 PopupMenu를 터치로 열고 항목 focus/Enter로 선택해 GUI 신호 경로를 확인했다. 실제 iPhone 터치 popup/Safe Area는 미검증이다.
+
+tests/phase3_tests.gd: 압박의 이벤트/범위/중복/리셋, 모든 패턴/프로필/FPS의 경계 및 무입력, 궤적/바운드, 가중 선택과 RNG, 3난이도 전체 전투. tests/phase3_render_smoke.gd: 강제 패턴 fixture로 15개 화면 조합과 압박을 확인하고, 실제 EnemyAI로 승리/패배까지 진행한다. 테스트 시계 조작을 일반 게임 코드에 추가하지 않았다. 예전 Phase 2 화면 테스트도 패턴별 return_seconds를 읽도록 갱신했다.

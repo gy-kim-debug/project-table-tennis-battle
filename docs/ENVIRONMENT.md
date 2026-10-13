@@ -43,3 +43,7 @@ Godot 버전 명령은 성공했으나 `Fontconfig error: No writable cache dire
 
 ## Phase 2 실행 기록
 같은 Godot/XDG/X11/OpenGL 환경에서 전체 테스트 521개와 editor import를 통과했다. 전투 화면 검증은 테스트 시계를 제어한 자동 검사이며 사용자 직접 플레이나 iPhone 검증이 아니다. 패키지/외부 의존성 설치 없음.
+
+
+## Phase 3 실행 기록
+동일 엔진/환경에서 2,507개 headless 검사와 editor import 성공. 가상 X11/OpenGL에서 패턴/프로필/GUI/압박/승패 렌더링 성공. 패키지 설치/새 외부 의존성 없이 기존 Godot 기능을 사용한다. 직접 플레이 및 iPhone 검증은 미수행이다.

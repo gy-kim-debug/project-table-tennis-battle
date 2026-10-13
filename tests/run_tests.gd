@@ -5,6 +5,7 @@ const Config = preload("res://scripts/core/timing_config.gd")
 const Clock = preload("res://scripts/core/game_clock.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
 const Pattern = preload("res://scripts/core/pattern_data.gd")
+const Phase3Tests = preload("res://tests/phase3_tests.gd")
 const BattleTests = preload("res://tests/battle_tests.gd")
 const BattleScene = preload("res://scenes/battle/battle.tscn")
 var checks: int = 0
@@ -33,8 +34,10 @@ func _run() -> void:
 	_test_frame_rates()
 	_test_pattern()
 	BattleTests.new().run(check)
+	Phase3Tests.new().run(check)
 	await _test_scene_inputs()
 	await _test_scene_battle()
+	await _test_scene_difficulty()
 	print("CORE + BATTLE TESTS: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
 
@@ -315,4 +318,35 @@ func _touch_at(position: Vector2) -> void:
 	var release: InputEventScreenTouch = press.duplicate()
 	release.pressed = false
 	Input.parse_input_event(release)
+	await process_frame
+
+func _test_scene_difficulty() -> void:
+	var battle: Node = BattleScene.instantiate()
+	root.add_child(battle)
+	await process_frame
+	battle.set_process(false)
+	battle.backgrounded = false
+	battle.manually_paused = false
+	battle._sync_pause()
+	battle.combat.pressure.player_judgement(Judge.Grade.PERFECT)
+	battle.toggle_pause()
+	battle._refresh()
+	check(battle.ui.pressure_label.text == "ENEMY PRESSURE 35 / 100", "pause UI shows current pressure")
+	var previous: int = battle.combat.battle_id
+	var old_rally: int = battle.rally.rally_id
+	battle.ui.difficulty_picker.item_selected.emit(2)
+	check(battle.combat.difficulty.difficulty_id == "hard", "difficulty selection reaches combat")
+	check(battle.combat.battle_id == previous + 1 and battle.combat.pressure.value == 0, "difficulty change resets battle and pressure once")
+	check(battle.combat.player_hp == 100 and battle.combat.enemy_hp == 100, "difficulty change restores HP")
+	check(battle.clock.paused and battle.ui.overlay.visible, "difficulty selection keeps pause menu open")
+	check(battle.ui.difficulty_picker.selected == 2 and battle.ui.subtitle.text.begins_with("HARD"), "UI reflects chosen difficulty")
+	check(not battle.combat.resolve_miss(previous, old_rally, 0, true), "difficulty change rejects old results")
+	battle.ui.difficulty_picker.item_selected.emit(0)
+	check(battle.combat.difficulty.difficulty_id == "easy" and battle.ui.difficulty_picker.selected == 0, "easy difficulty selectable")
+	previous = battle.combat.battle_id
+	battle.select_difficulty(-1)
+	battle.select_difficulty(3)
+	check(battle.combat.battle_id == previous, "invalid difficulty index cannot reset battle")
+	check(preload("res://resources/difficulty/normal.tres").defense_ability == 65, "difficulty switching does not mutate shared normal data")
+	battle.queue_free()
 	await process_frame

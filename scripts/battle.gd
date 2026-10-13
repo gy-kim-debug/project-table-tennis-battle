@@ -1,5 +1,6 @@
 extends Node
 
+const Catalog = preload("res://scripts/core/pattern_catalog.gd")
 const Clock = preload("res://scripts/core/game_clock.gd")
 const Combat = preload("res://scripts/core/battle_manager.gd")
 const Balance = preload("res://resources/balance/battle.tres")
@@ -7,7 +8,7 @@ const Config = preload("res://resources/balance/timing.tres")
 const Pattern = preload("res://resources/patterns/basic_return.tres")
 
 var clock: RefCounted = Clock.new()
-var combat: RefCounted = Combat.new(Balance, Config, Pattern)
+var combat: RefCounted = Combat.new(Balance, Config, Pattern, null, Catalog.difficulties()[1], Catalog.all())
 var rally: RefCounted = combat.rally
 var manually_paused: bool = false
 var backgrounded: bool = false
@@ -23,6 +24,7 @@ func _ready() -> void:
 	combat.battle_ended.connect(_on_battle_ended)
 	ui.pause_requested.connect(toggle_pause)
 	ui.restart_requested.connect(restart)
+	ui.difficulty_requested.connect(select_difficulty)
 	combat.start(clock.now_us())
 	_refresh()
 
@@ -71,10 +73,7 @@ func restart() -> void:
 		manually_paused = false
 		_sync_pause()
 	combat.start(clock.now_us())
-	ui.clear_feedback()
-	court.clear_feedback()
-	ui.reset_result()
-	_refresh()
+	_reset_presentation()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
@@ -114,3 +113,16 @@ func _on_battle_ended(winner: int) -> void:
 
 func _exit_tree() -> void:
 	rally.stop()
+
+func _reset_presentation() -> void:
+	ui.clear_feedback()
+	court.clear_feedback()
+	ui.reset_result()
+	_refresh()
+
+func select_difficulty(index: int) -> void:
+	var profiles: Array[Resource] = Catalog.difficulties()
+	if index < 0 or index >= profiles.size():
+		return
+	if combat.set_difficulty(profiles[index], clock.now_us()):
+		_reset_presentation()

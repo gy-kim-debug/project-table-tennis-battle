@@ -77,7 +77,7 @@ func _run() -> void:
 		await jump_to(battle.rally.target_us)
 		await swing()
 		assert(battle.rally.state == Rally.State.PLAYER_RETURN)
-		await jump_to(battle.rally.phase_start_us + 850000)
+		await jump_to(battle.rally.phase_start_us + roundi(battle.rally.pattern.return_seconds * 1000000.0))
 		if battle.combat.enemy_hp < 100 and not captured_enemy_damage:
 			await capture("phase2-enemy-damage")
 			captured_enemy_damage = true
@@ -108,7 +108,7 @@ func _run() -> void:
 	await jump_to(battle.rally.phase_start_us + 800000)
 	await jump_to(battle.rally.target_us)
 	await swing()
-	await jump_to(battle.rally.phase_start_us + 850000)
+	await jump_to(battle.rally.phase_start_us + roundi(battle.rally.pattern.return_seconds * 1000000.0))
 	assert(battle.rally.incoming_strong)
 	await jump_to(battle.rally.phase_start_us + 500000)
 	await capture("phase2-strong-counter-fixture")

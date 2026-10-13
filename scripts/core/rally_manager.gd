@@ -12,6 +12,10 @@ signal missed(previous_count: int)
 signal enemy_defended(grade: int)
 signal rally_resolved(rally_id: int, loser: int, strong: bool)
 
+var pressure: RefCounted
+var difficulty: Resource
+var patterns: Array[Resource] = []
+var incoming_duration: float = 1.25
 var enemy: RefCounted
 var combat_config: Resource
 var incoming_strong: bool = false
@@ -58,10 +62,13 @@ func _launch(now_us: int, strong: bool = false) -> void:
 	if state == State.RALLY_RESULT:
 		rally_id += 1
 	state = State.ENEMY_ATTACK
-	incoming_strong = strong
+	if not patterns.is_empty() and enemy != null:
+		pattern = enemy.select_pattern(patterns, difficulty)
+	incoming_duration = pattern.incoming_seconds * (1.0 if difficulty == null else difficulty.flight_multiplier)
+	incoming_strong = strong or pattern.strong_attack
 	state = State.PLAYER_TIMING
 	phase_start_us = now_us
-	target_us = now_us + roundi(pattern.incoming_seconds * 1000000.0)
+	target_us = now_us + roundi(incoming_duration * 1000000.0)
 	ball_id += 1
 	bounce_sent = false
 	judge.arm(target_us)
@@ -72,6 +79,8 @@ func swing(now_us: int) -> int:
 	var grade: int = judge.swing(now_us)
 	if grade < 0:
 		return -1
+	if pressure != null:
+		pressure.player_judgement(grade)
 	var error_ms: float = float(now_us - config.input_offset_ms * 1000 - target_us) / 1000.0
 	if grade == Judge.Grade.MISS:
 		_miss(now_us)
@@ -84,6 +93,8 @@ func swing(now_us: int) -> int:
 	return grade
 
 func _miss(now_us: int) -> void:
+	if pressure != null:
+		pressure.reset()
 	_end_rally(now_us, 0, incoming_strong)
 
 func _end_rally(now_us: int, loser: int, strong: bool) -> void:
@@ -100,9 +111,9 @@ func advance(now_us: int) -> void:
 			if now_us - phase_start_us >= roundi(config.serve_delay * 1000000.0):
 				_launch(now_us)
 		State.PLAYER_TIMING, State.HIT_PENDING:
-			_check_bounce(now_us, pattern.incoming_seconds, false)
+			_check_bounce(now_us, incoming_duration, false)
 			if state == State.HIT_PENDING and now_us >= contact_us:
-				return_origin = pattern.sample(float(contact_us - phase_start_us) / (pattern.incoming_seconds * 1000000.0))
+				return_origin = pattern.sample(float(contact_us - phase_start_us) / (incoming_duration * 1000000.0))
 				state = State.PLAYER_RETURN
 				phase_start_us = contact_us
 				bounce_sent = false
@@ -119,7 +130,9 @@ func advance(now_us: int) -> void:
 				var defense: int = Judge.Grade.GOOD
 				# No AI is a test/practice loop preserving Phase 1 regression coverage.
 				if enemy != null:
-					defense = enemy.defend(combat_config.attack_power[outgoing_grade])
+					defense = enemy.defend(combat_config.attack_power[outgoing_grade], 0 if pressure == null else pressure.value, pattern.pattern_difficulty)
+				if pressure != null:
+					pressure.enemy_defense(defense)
 				if defense == Judge.Grade.MISS:
 					_end_rally(now_us, 1, outgoing_grade == Judge.Grade.PERFECT)
 				else:
@@ -134,7 +147,7 @@ func _check_bounce(now_us: int, seconds: float, returning: bool) -> void:
 func ball_point(now_us: int) -> Vector3:
 	if state == State.PLAYER_RETURN:
 		return pattern.sample(float(now_us - phase_start_us) / (pattern.return_seconds * 1000000.0), true, return_origin)
-	return pattern.sample(float(now_us - phase_start_us) / (pattern.incoming_seconds * 1000000.0))
+	return pattern.sample(float(now_us - phase_start_us) / (incoming_duration * 1000000.0))
 
 func ball_visible() -> bool:
 	return state in [State.PLAYER_TIMING, State.HIT_PENDING, State.PLAYER_RETURN]

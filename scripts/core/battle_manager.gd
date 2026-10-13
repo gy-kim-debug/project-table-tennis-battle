@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Pressure = preload("res://scripts/core/pressure_system.gd")
 const Config = preload("res://scripts/core/battle_config.gd")
 const Enemy = preload("res://scripts/core/enemy_ai.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
@@ -10,6 +11,8 @@ signal hp_changed(side: int, current: int, maximum: int)
 signal damaged(side: int, amount: int, remaining: int)
 signal battle_ended(winner: int)
 
+var pressure: RefCounted
+var difficulty: Resource
 var config: Resource
 var enemy: RefCounted
 var rally: RefCounted
@@ -20,11 +23,20 @@ var winner: int = -1
 var battle_id: int = 0
 var last_damaged_rally: int = -1
 
-func _init(settings: Resource = null, timing: Resource = null, pattern: Resource = null, ai_override: RefCounted = null) -> void:
+func _init(settings: Resource = null, timing: Resource = null, pattern: Resource = null, ai_override: RefCounted = null, profile: Resource = null, pattern_options: Array[Resource] = []) -> void:
+	difficulty = profile
 	config = settings if settings != null else Config.new()
 	assert(config.is_valid())
-	enemy = ai_override if ai_override != null else Enemy.new(config)
+	if not pattern_options.is_empty():
+		assert(difficulty != null and difficulty.is_valid(pattern_options.size()))
+		for entry in pattern_options:
+			assert(entry.is_valid())
+	enemy = ai_override if ai_override != null else Enemy.new(config, difficulty)
 	rally = Rally.new(timing, pattern, enemy, config)
+	pressure = Pressure.new(config)
+	rally.pressure = pressure
+	rally.difficulty = difficulty
+	rally.patterns.assign(pattern_options)
 	rally.rally_resolved.connect(_on_rally_resolved)
 
 func start(now_us: int) -> void:
@@ -35,6 +47,7 @@ func start(now_us: int) -> void:
 	player_hp = config.max_hp
 	enemy_hp = config.max_hp
 	enemy.reset()
+	pressure.reset()
 	state = State.ACTIVE
 	rally.start(now_us)
 	hp_changed.emit(Side.PLAYER, player_hp, config.max_hp)
@@ -75,4 +88,13 @@ func resolve_miss(session_id: int, rally_id: int, loser: int, strong: bool) -> b
 	damaged.emit(loser, previous - remaining, remaining)
 	if state == State.BATTLE_END:
 		battle_ended.emit(winner)
+	return true
+
+func set_difficulty(profile: Resource, now_us: int) -> bool:
+	if profile == null or not profile.is_valid(rally.patterns.size()):
+		return false
+	difficulty = profile
+	enemy.difficulty = profile
+	rally.difficulty = profile
+	start(now_us)
 	return true

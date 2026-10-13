@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/difficulty_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+difficulty_id = "normal"
+display_name = "NORMAL"
+defense_ability = 65.0
+flight_multiplier = 1.0
+pattern_weights = PackedFloat32Array(28, 22, 20, 20, 10)

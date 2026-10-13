@@ -53,12 +53,19 @@ func _run() -> void:
 	await capture("character-backswing")
 	await at_time(target)
 	assert(battle.court.player_actor.index_at(float(target) / 1000000) == 3)
-	var contact: Vector2 = battle.court._anchor(true) + battle.court.player_actor.racket_contact - battle.court.player_actor.pivot
+	var scale_factor: float = float(battle.court.layout["player_scale"])
+	var contact: Vector2 = battle.court._anchor(true) + (battle.court.player_actor.racket_contact - battle.court.player_actor.pivot) * scale_factor
 	assert(contact.distance_to(battle.court.player_contact) < 0.001)
+	assert(battle.court.project_point(Vector3(-1, 0, 0)).y < battle.court.project_point(Vector3(-1, 1, 0)).y)
+	assert(battle.court.project_point(Vector3(-1, 1, 0)).x < 0.0)
+	assert(battle.court.player_contact.x > battle.court.project_point(Vector3(0, 1, 0)).x)
 	await capture("character-contact")
 	await at_time(target + 100000)
 	await capture("character-follow-through")
 	await at_time(battle.rally.phase_start_us + 850000)
+	var enemy_scale: float = float(battle.court.layout["enemy_scale"])
+	var enemy_contact: Vector2 = battle.court._anchor(false) + (battle.court.enemy_actor.racket_contact - battle.court.enemy_actor.pivot) * enemy_scale
+	assert(enemy_contact.distance_to(battle.court.enemy_contact) < 0.001)
 	await capture("character-enemy-contact")
 	var miss_time: int = battle.rally.target_us + 180001
 	await at_time(miss_time)

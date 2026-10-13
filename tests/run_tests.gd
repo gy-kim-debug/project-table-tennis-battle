@@ -264,6 +264,15 @@ func _test_scene_battle() -> void:
 	battle._sync_pause()
 	var fixture: RefCounted = preload("res://tests/fixtures/defense_ai.gd").new()
 	check(battle.ui.enemy_hp_bar.size.y <= 8 and battle.ui.player_hp_bar.size.y <= 8, "HP bars fit reserved 8px rows")
+	var far_left: Vector2 = battle.court.project_point(Vector3(-1, 0, 0))
+	var far_right: Vector2 = battle.court.project_point(Vector3(1, 0, 0))
+	var near_left: Vector2 = battle.court.project_point(Vector3(-1, 1, 0))
+	var near_right: Vector2 = battle.court.project_point(Vector3(1, 1, 0))
+	check(far_left.x > 0 and far_right.x < 360, "far table edge fits behind opponent")
+	check(near_left.x < 0 and near_right.x > 360, "near table edge fills portrait width")
+	check(near_left.y > far_left.y + 250, "rear view gives the table visible depth")
+	check(battle.court.project_point(Vector3(0, 0.5, 0)).y > 240 and battle.court.project_point(Vector3(0, 0.5, 0)).y < 310, "net falls between players")
+	check(battle.court.player_contact.x > 200 and battle.court.player_contact.y > 400, "racket contact stays in near foreground")
 	fixture.grade = Judge.Grade.MISS
 	battle.combat.enemy = fixture
 	battle.rally.enemy = fixture

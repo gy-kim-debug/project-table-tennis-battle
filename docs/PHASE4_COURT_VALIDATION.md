@@ -1,0 +1,14 @@
+# Phase 4 근접 경기장 검증 — 2026-10-13
+
+사용자 요청: 승인 시안의 구도와 실제 게임의 차이를 줄이고, 플레이어 등 뒤에서 약간 높은 시점으로 조정.
+
+- 360×640 세로 화면. 먼 탁구대 가로 가장자리는 화면 안, 가까운 가장자리는 좌우 화면 밖까지 채운다. 네트는 중앙 깊이에 있다.
+- PNG 5종: `assets/table/table_main.png`, `table_net.png`, `assets/backgrounds/background_main.png`, `assets/ball/ball_main.png`, `ball_shadow.png`. 모든 화면용 그림은 1px 격자 기반, Godot lossless/Nearest/mipmap 없음.
+- 탁구대 제작 도구와 게임의 공 투영은 `assets/table/layout.json`을 공유한다. 공·그림자·바운드·라켓 접촉점이 같은 투영으로 움직인다.
+- 플레이어 스케일 3배, 상대 1.55배. 상대 상체는 먼 탁구대 위로 일부 겹치고 플레이어는 왼쪽 전경. UI는 판정/HP를 하단에 배치한다.
+- Godot 4.6.3 headless **2,625 checks, 0 failures**. 실제 씬에서 투영 폭/깊이/네트/접촉 위치, 기존 랠리·HP·AI를 확인했다.
+- Linux 가상 X11/OpenGL에서 `tests/character_render_smoke.gd`의 Idle/접촉/Miss/정지/재시작 통과. `tests/phase3_render_smoke.gd`의 패턴×난이도 15화면 및 승패 회귀 확인.
+
+화면 캡처는 자동 테스트 시계와 fixture를 썼다. 사람의 직접 플레이, iPhone과 최종 미감은 아직 검수하지 않았다. 시안과 완전히 동일한 일러스트라는 의미는 아니며, 화면 투영과 배치에 맞춘 실제 게임용 픽셀 그래픽 초안이다. UI/효과/사운드와 나머지 캐릭터 상태는 후속 작업이다.
+
+[경기 화면](previews/rear-court-game.png) / [대기 화면](previews/rear-court-idle.png) / [원본 시안](concepts/focused-court-v3.png) / [사용자 검수](USER_QA.md)

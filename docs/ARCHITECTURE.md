@@ -148,3 +148,7 @@ tests/phase3_tests.gd: 압박의 이벤트/범위/중복/리셋, 모든 패턴/�
 ## Phase 4 캐릭터 출력
 CharacterAnimator(RefCounted)는 SpriteFrames/AtlasTexture와 manifest 피벗/접촉점을 읽고 게임 시간으로 프레임을 선택한다. 시작 시각/경과는 정수 마이크로초로 계산한다. Swing의 접촉 프레임을 논리 접촉 시각에 맞추지만 판정 결과를 변경하지 않는다. CourtView가 캐릭터별 animator를 소유하고 judged/enemy_defended 및 새 공 발사에 따라 Swing/Miss를 표시한다. 정지 시 같은 게임 시각을 받아 프레임을 유지하며 재시작은 Idle로 초기화한다. 에셋이 없으면 기존 도형을 사용한다.
 PNG는 실제 128셀, lossless/mipmaps 없음, 프로젝트 Nearest. 원본/문서 이미지의 import/export는 .gdignore로 제외한다. Python/Pillow/NumPy/SciPy는 에셋 재생성 도구의 개발 의존성이고 런타임 의존성이 아니다. 플레이어 HP는 발과 겹치지 않도록 label y503/bar y522로 옮겼다. 최종 환경/확대 구도는 미완료다.
+
+
+## Phase 4 근접 경기장 투영
+`assets/table/layout.json`을 화면 투영의 기준으로 두고, `tools/assets/build_court.py`가 같은 값에서 탁구대/네트/배경/공 PNG를 재생성한다. CourtView는 JSON을 읽어 논리 x·깊이·높이를 화면 x/y로 바꾼다. 깊이에 1.65 지수를 적용해 등 뒤에서 약간 내려다보는 근접 원근을 만든다. 공·그림자·바운드·접촉 마커와 캐릭터의 라켓 기준점은 한 투영을 사용한다. 레이어는 배경→탁구대→상대 상체→원경 공→네트→플레이어→근경 공→HUD다. 순수 랠리/전투 모델의 좌표·판정창·시계는 변경하지 않는다.

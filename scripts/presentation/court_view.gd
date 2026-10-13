@@ -2,8 +2,14 @@ extends Node2D
 
 const Animator = preload("res://scripts/presentation/character_animator.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
+const BACKGROUND = preload("res://assets/backgrounds/background_main.png")
+const TABLE = preload("res://assets/table/table_main.png")
+const NET = preload("res://assets/table/table_net.png")
+const BALL = preload("res://assets/ball/ball_main.png")
+const SHADOW = preload("res://assets/ball/ball_shadow.png")
 const INK = Color("0b1020")
 const LINE = Color("b9dfcb")
+var layout: Dictionary
 var player_actor: RefCounted = Animator.new()
 var enemy_actor: RefCounted = Animator.new()
 var last_ball_id: int = -1
@@ -24,14 +30,19 @@ var enemy_hit_at: float = -10.0
 var player_damage: int = 0
 var enemy_damage: int = 0
 
-# Fixed 2D skew: depth axis shifts left toward the viewer (20 degrees).
-# Artwork/20-degree composition remains subject to the user's visual review.
+# The table artwork and moving ball share this fixed, slightly raised rear view.
 func project_point(point: Vector3, ground: bool = false) -> Vector2:
-	var center: Vector2 = Vector2(210, 233).lerp(Vector2(210.0 - 205.0 * tan(deg_to_rad(20.0)), 438), point.y)
-	var half_width: float = lerpf(67.0, 125.0, point.y)
-	return Vector2(center.x + point.x * half_width, center.y + point.x * lerpf(10.0, 20.0, point.y) - (0.0 if ground else point.z))
+	var far: Array = layout["far_center"]
+	var near: Array = layout["near_center"]
+	var depth: float = point.y
+	var center_x: float = lerpf(float(far[0]), float(near[0]), depth)
+	var center_y: float = lerpf(float(far[1]), float(near[1]), pow(depth, float(layout["depth_power"])))
+	var half_width: float = lerpf(float(layout["far_half_width"]), float(layout["near_half_width"]), depth)
+	var skew: float = lerpf(float(layout["far_skew"]), float(layout["near_skew"]), depth)
+	return Vector2(center_x + point.x * half_width, center_y + point.x * skew - (0.0 if ground else point.z))
 
 func _ready() -> void:
+	layout = JSON.parse_string(FileAccess.get_file_as_string("res://assets/table/layout.json"))
 	player_actor.configure("player")
 	enemy_actor.configure("enemy")
 
@@ -61,37 +72,13 @@ func clear_feedback() -> void:
 	last_ball_id = -1
 
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 360, 640), Color("111b30"))
-	# Simple flat geometric placeholders; no final art assets.
-	for y in range(142, 545, 28):
-		draw_line(Vector2(0, y), Vector2(360, y), Color("17243a"), 1)
-	draw_rect(Rect2(16, 153, 328, 365), Color("1b2b40"), false, 2)
-	draw_colored_polygon(PackedVector2Array([Vector2(34, 436), Vector2(273, 478), Vector2(302, 494), Vector2(39, 457)]), Color("0b1424"))
-	# Opponent faces the player, fixed in place.
+	draw_texture(BACKGROUND, Vector2.ZERO)
+	draw_texture(TABLE, Vector2.ZERO)
+	# Only the opponent's upper body reaches in front of the far table edge.
 	_character(_anchor(false), false, time_seconds - enemy_swing_at < 0.22)
-	var corners: PackedVector2Array = PackedVector2Array([
-		project_point(Vector3(-1, 0, 0)), project_point(Vector3(1, 0, 0)),
-		project_point(Vector3(1, 1, 0)), project_point(Vector3(-1, 1, 0))])
-	var apron: PackedVector2Array = PackedVector2Array([corners[3], corners[2], corners[2] + Vector2(0, 12), corners[3] + Vector2(0, 12)])
-	draw_colored_polygon(apron, Color("174756"))
-	draw_rect(Rect2(55, 434, 10, 66), Color("182436"))
-	draw_rect(Rect2(246, 467, 10, 38), Color("182436"))
-	draw_colored_polygon(corners, Color("287e83"))
-	var border: PackedVector2Array = corners.duplicate()
-	border.append(corners[0])
-	draw_polyline(border, LINE, 3, false)
-	draw_line(project_point(Vector3(0, 0, 0)), project_point(Vector3(0, 1, 0)), Color("71b7ae"), 2, false)
-	var left: Vector2 = project_point(Vector3(-1, 0.5, 0))
-	var right: Vector2 = project_point(Vector3(1, 0.5, 0))
-	draw_colored_polygon(PackedVector2Array([left, right, right - Vector2(0, 22), left - Vector2(0, 22)]), Color("183e4b"))
-	for i in range(13):
-		var foot: Vector2 = left.lerp(right, float(i) / 12.0)
-		draw_line(foot, foot - Vector2(0, 22), Color("518b94"), 1)
-	for j in range(1, 4):
-		draw_line(left - Vector2(0, j * 6), right - Vector2(0, j * 6), Color("518b94"), 1)
-	draw_line(left - Vector2(0, 22), right - Vector2(0, 22), LINE, 3)
-	draw_line(left + Vector2(0, 4), left - Vector2(0, 28), INK, 4)
-	draw_line(right + Vector2(0, 4), right - Vector2(0, 28), INK, 4)
+	if show_ball and ball.y < float(layout["net_depth"]):
+		_draw_ball()
+	draw_texture(NET, Vector2.ZERO)
 	var hit: Vector2 = project_point(Vector3(0.15, 1, 16))
 	# A quiet fixed contact marker teaches timing without another control.
 	draw_arc(hit, 12, 0, TAU, 16, Color("b9dfcb"), 1, false)
@@ -101,16 +88,19 @@ func _draw() -> void:
 		var r: float = 3.0 + (time_seconds - bounce_at) * 45.0
 		draw_arc(bounce_position, r, 0, TAU, 12, Color("fff4d2"), 1)
 	_character(_anchor(true), true, time_seconds - swing_at < 0.22)
-	if show_ball:
-		var pos: Vector2 = project_point(ball).round()
-		var shadow: Vector2 = project_point(ball, true).round()
-		var radius: float = roundf(lerpf(3.0, 5.0, clampf(ball.y, 0.0, 1.0)))
-		draw_rect(Rect2(shadow - Vector2(radius + 2, 2), Vector2((radius + 2) * 2, 4)), Color("18515c"))
-		draw_rect(Rect2(pos - Vector2(radius + 1, radius + 1), Vector2.ONE * (radius + 1) * 2), INK)
-		draw_rect(Rect2(pos - Vector2(radius, radius), Vector2.ONE * radius * 2), Color("ffd166") if strong_ball else Color("fff4d2"))
+	if show_ball and ball.y >= float(layout["net_depth"]):
+		_draw_ball()
 	if time_seconds - contact_at < 0.12:
 		for offset in [Vector2(-18, -4), Vector2(17, -9), Vector2(8, 15)]:
 			draw_rect(Rect2(hit + offset, Vector2(3, 3)), Color("ffd166"))
+	# A quiet HUD strip lets the lower HP read over the foreground player.
+	draw_rect(Rect2(0, 530, 360, 110), Color(0.043, 0.063, 0.125, 0.78))
+
+func _draw_ball() -> void:
+	var pos: Vector2 = project_point(ball).round()
+	var shadow: Vector2 = project_point(ball, true).round()
+	draw_texture(SHADOW, shadow - Vector2(8, 3))
+	draw_texture_rect(BALL, Rect2(pos - Vector2(6, 6), Vector2(12, 12)), false, Color("ffd166") if strong_ball else Color.WHITE)
 
 func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	var color: Color = Color("54c7e6") if player else Color("ef7869")
@@ -123,7 +113,13 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.available():
 		var tint: Color = Color("ffd166") if time_seconds - hit_at < 0.3 else Color.WHITE
-		draw_texture(actor.texture_at(time_seconds), (feet - actor.pivot).round(), tint)
+		var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
+		var top_left: Vector2 = (feet - actor.pivot * scale_factor).round()
+		if player:
+			draw_texture_rect(actor.texture_at(time_seconds), Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
+		else:
+			var visible_height: float = clampf(208.0 - top_left.y, 0.0, 128.0 * scale_factor)
+			draw_texture_rect_region(actor.texture_at(time_seconds), Rect2(top_left, Vector2(128.0 * scale_factor, visible_height)), Rect2(Vector2.ZERO, Vector2(128.0, visible_height / scale_factor)), tint)
 		return
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))
@@ -155,7 +151,8 @@ func show_damage(side: int, amount: int, now: float) -> void:
 func _anchor(player: bool) -> Vector2:
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.available():
-		return (player_contact if player else enemy_contact) - (actor.racket_contact - actor.pivot)
+		var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
+		return (player_contact if player else enemy_contact) - (actor.racket_contact - actor.pivot) * scale_factor
 	return Vector2(100, 487) if player else Vector2(213, 200)
 
 func animate_player(grade: int, now: float, contact_time: float) -> void:

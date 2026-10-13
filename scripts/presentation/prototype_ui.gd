@@ -44,18 +44,15 @@ func _ready() -> void:
 	subtitle = _label("NORMAL · HP BATTLE", Vector2(23, 53), Vector2(250, 20), 11, Color("829aae"))
 	count_label = _label("00", Vector2(22, 108), Vector2(94, 30), 24, Color("fff4d2"))
 	_label("RETURNS", Vector2(23, 133), Vector2(100, 18), 10, Color("829aae"))
-	best_label = _label("BEST 00", Vector2(184, 112), Vector2(145, 20), 14, Color("b9dfcb"))
-	best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	best_label = _label("BEST 00", Vector2(22, 148), Vector2(130, 20), 12, Color("b9dfcb"))
 	pause_button = _button("II", Rect2(284, 22, 52, 40))
 	pause_button.pressed.connect(func(): pause_requested.emit())
-	feedback = _label("GET READY", Vector2(30, 533), Vector2(300, 30), 25, Color("ffd166"))
+	feedback = _label("GET READY", Vector2(30, 541), Vector2(300, 30), 25, Color("ffd166"))
 	feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	error_label = _label("", Vector2(30, 560), Vector2(300, 20), 12, Color("829aae"))
+	error_label = _label("", Vector2(30, 567), Vector2(300, 20), 12, Color("829aae"))
 	error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label = _label("Tap once when the ball meets the ring", Vector2(15, 589), Vector2(330, 22), 13, Color("b9dfcb"))
+	status_label = _label("Tap once when the ball meets the ring", Vector2(15, 587), Vector2(330, 20), 12, Color("b9dfcb"))
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var help: Label = _label("TAP / CLICK / SPACE     ·     P pause    R restart", Vector2(15, 616), Vector2(330, 18), 10, Color("829aae"))
-	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overlay = Panel.new()
 	overlay.position = Vector2(24, 244)
 	overlay.size = Vector2(312, 218)
@@ -101,10 +98,10 @@ func _ready() -> void:
 	enemy_hp_label = _label("100 / 100", Vector2(218, 74), Vector2(118, 16), 10, Color("fff4d2"))
 	enemy_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	enemy_hp_bar = _hp_bar(Vector2(22, 94), Color("ef7869"))
-	_label("PLAYER", Vector2(22, 503), Vector2(120, 16), 10, Color("54c7e6"))
-	player_hp_label = _label("100 / 100", Vector2(218, 503), Vector2(118, 16), 10, Color("fff4d2"))
+	_label("PLAYER", Vector2(22, 609), Vector2(120, 16), 10, Color("54c7e6"))
+	player_hp_label = _label("100 / 100", Vector2(218, 609), Vector2(118, 16), 10, Color("fff4d2"))
 	player_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	player_hp_bar = _hp_bar(Vector2(22, 522), Color("54c7e6"))
+	player_hp_bar = _hp_bar(Vector2(22, 627), Color("54c7e6"))
 	defense_label = _label("", Vector2(22, 160), Vector2(148, 20), 11, Color("b9dfcb"))
 	pattern_label = _label("BASIC RETURN", Vector2(22, 183), Vector2(148, 18), 10, Color("fff4d2"))
 	_build_result_panel()

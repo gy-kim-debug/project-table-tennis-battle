@@ -1,0 +1,12 @@
+{
+  "far_center": [205, 190],
+  "near_center": [212, 455],
+  "far_half_width": 151,
+  "near_half_width": 220,
+  "far_skew": -4,
+  "near_skew": -7,
+  "depth_power": 1.65,
+  "net_depth": 0.5,
+  "player_scale": 3,
+  "enemy_scale": 1.55
+}

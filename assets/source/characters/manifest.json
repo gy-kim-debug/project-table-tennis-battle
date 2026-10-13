@@ -1,0 +1,33 @@
+{
+  "reference_concept": "docs/concepts/focused-court-v3.png",
+  "assets": [
+    {
+      "id": "player_reference",
+      "file": "player_reference.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "state": "generated_source_reference",
+      "target_frame": [
+        128,
+        128
+      ],
+      "frame_grid_validated": false,
+      "animation_created": false
+    },
+    {
+      "id": "enemy_reference",
+      "file": "enemy_reference.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "state": "generated_source_reference",
+      "target_frame": [
+        128,
+        128
+      ],
+      "frame_grid_validated": false,
+      "animation_created": false
+    }
+  ]
+}

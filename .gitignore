@@ -1,0 +1,14 @@
+# Godot generated caches
+.godot/
+*.tmp
+# Local export/signing material
+export_credentials.cfg
+*.p12
+*.mobileprovision
+*.p8
+.env
+.env.*
+# Build outputs and local tools
+build/
+work/
+.DS_Store

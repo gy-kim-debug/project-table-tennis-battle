@@ -1,0 +1,107 @@
+extends RefCounted
+
+const Judge = preload("res://scripts/core/timing_judge.gd")
+const Pattern = preload("res://scripts/core/pattern_data.gd")
+const Config = preload("res://scripts/core/timing_config.gd")
+enum State { RALLY_START, PLAYER_TIMING, HIT_PENDING, PLAYER_RETURN, RALLY_RESULT, STOPPED }
+
+signal judged(grade: int, error_ms: float)
+signal returned(count: int)
+signal bounced(returning: bool)
+signal missed(previous_count: int)
+
+var config: Resource
+var pattern: Resource
+var judge: RefCounted
+var state: int = State.STOPPED
+var phase_start_us: int = 0
+var target_us: int = 0
+var contact_us: int = 0
+var return_origin: Vector3
+var rally_count: int = 0
+var best_count: int = 0
+var ball_id: int = 0
+var bounce_sent: bool = false
+
+func _init(settings: Resource = null, ball_pattern: Resource = null) -> void:
+	config = settings if settings != null else Config.new()
+	pattern = ball_pattern if ball_pattern != null else Pattern.new()
+	judge = Judge.new(config)
+
+func start(now_us: int) -> void:
+	rally_count = 0
+	state = State.RALLY_START
+	phase_start_us = now_us
+	bounce_sent = false
+
+func stop() -> void:
+	state = State.STOPPED
+	judge.consumed = true
+
+func _launch(now_us: int) -> void:
+	state = State.PLAYER_TIMING
+	phase_start_us = now_us
+	target_us = now_us + roundi(pattern.incoming_seconds * 1000000.0)
+	ball_id += 1
+	bounce_sent = false
+	judge.arm(target_us)
+
+func swing(now_us: int) -> int:
+	if state != State.PLAYER_TIMING:
+		return -1
+	var grade: int = judge.swing(now_us)
+	if grade < 0:
+		return -1
+	var error_ms: float = float(now_us - config.input_offset_ms * 1000 - target_us) / 1000.0
+	if grade == Judge.Grade.MISS:
+		_miss(now_us)
+	else:
+		# Early successful input is latched until the ball reaches the racket.
+		state = State.HIT_PENDING
+		contact_us = maxi(now_us, target_us)
+	judged.emit(grade, error_ms)
+	return grade
+
+func _miss(now_us: int) -> void:
+	var previous: int = rally_count
+	state = State.RALLY_RESULT
+	phase_start_us = now_us
+	rally_count = 0
+	missed.emit(previous)
+
+func advance(now_us: int) -> void:
+	match state:
+		State.RALLY_START, State.RALLY_RESULT:
+			if now_us - phase_start_us >= roundi(config.serve_delay * 1000000.0):
+				_launch(now_us)
+		State.PLAYER_TIMING, State.HIT_PENDING:
+			_check_bounce(now_us, pattern.incoming_seconds, false)
+			if state == State.HIT_PENDING and now_us >= contact_us:
+				return_origin = pattern.sample(float(contact_us - phase_start_us) / (pattern.incoming_seconds * 1000000.0))
+				state = State.PLAYER_RETURN
+				phase_start_us = contact_us
+				bounce_sent = false
+				rally_count += 1
+				best_count = maxi(best_count, rally_count)
+				returned.emit(rally_count)
+			elif state == State.PLAYER_TIMING and judge.expire(now_us) == Judge.Grade.MISS:
+				_miss(now_us)
+				judged.emit(Judge.Grade.MISS, INF)
+		State.PLAYER_RETURN:
+			_check_bounce(now_us, pattern.return_seconds, true)
+			if now_us - phase_start_us >= roundi(pattern.return_seconds * 1000000.0):
+				# Phase 1 opponent always returns. No HP or defense probability.
+				_launch(now_us)
+
+func _check_bounce(now_us: int, seconds: float, returning: bool) -> void:
+	if not bounce_sent and now_us - phase_start_us >= roundi(seconds * pattern.bounce_fraction * 1000000.0):
+		bounce_sent = true
+		bounced.emit(returning)
+
+func ball_point(now_us: int) -> Vector3:
+	if state == State.PLAYER_RETURN:
+		return pattern.sample(float(now_us - phase_start_us) / (pattern.return_seconds * 1000000.0), true, return_origin)
+	return pattern.sample(float(now_us - phase_start_us) / (pattern.incoming_seconds * 1000000.0))
+
+func ball_visible() -> bool:
+	return state in [State.PLAYER_TIMING, State.HIT_PENDING, State.PLAYER_RETURN]

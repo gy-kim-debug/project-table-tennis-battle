@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/timing_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+perfect_ms = 50
+good_ms = 120
+bad_ms = 180
+input_offset_ms = 0
+serve_delay = 0.8

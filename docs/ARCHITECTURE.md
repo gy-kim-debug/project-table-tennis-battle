@@ -1,4 +1,4 @@
-# 기술 설계 및 Phase 1 구현
+# 기술 설계 및 Phase 1~2 구현
 
 아래 전체 전투 구조는 초기 설계다. 실제 Phase 1 구현은 하단에 별도로 기록했다. Godot 4.6.3 stable을 확인했다. 모든 시스템을 Autoload로 만들지 않는다.
 
@@ -78,7 +78,7 @@ Phase 1은 TimingConfig와 기본 PatternData만 필요. 값의 단위와 허용
 Godot --headless --path . --script tests/run_tests.gd 방식의 엔진 기반 테스트를 Phase 1에 준비한다. 판정 경계 ±50/120/180ms와 직전/직후, 입력 없음, 너무 빠름/늦음, 중복/연타, 30/60/120fps 시각 샘플 비교. Phase 2: HP 제한·피해 중복·승패·종료 후 입력/지연 이벤트. Phase 3: 시드 재현·수비 결과·압박 제한·패턴/난이도. 자동 10회 리턴 루프와 실제 10회 플레이는 별도 검증으로 기록한다.
 
 
-## 현재 구현 (Phase 1)
+## Phase 1 구현 기록
 씬 `scenes/battle/battle.tscn`: Battle(Node, battle.gd) → CourtView(Node2D) + BattleUI(CanvasLayer). Autoload 없음.
 
 | 파일 | 구현 책임 |
@@ -104,3 +104,25 @@ Godot 터치→마우스 합성을 활성화하고 마우스→터치 합성은 
 뷰포트 360×640을 비율 유지로 표시한다. 깊이 축은 x 이동 −205×tan20°/y 이동205이며 고정 캐릭터 라켓 옆 마커는 논리 타격점 x0.15/깊이1/높이16이다. 공 바운드는 각 이동의 62% 지점이며 높이0이 된다. 모델은 애니메이션/노드/화면 좌표를 참조하지 않는다.
 
 Safe Area UI는 iOS에서 display rect를 screen transform 역변환한 뒤 패널을 안전 영역 안으로 스케일한다. 현재 데스크톱에서만 검증했고 실제 iOS 검증은 미완료. World는 9:16 고정 레터박스이며 기종별 필수 요소가 잘리지 않는지는 Phase 6 검수 대상이다. 오디오/ConfigFile/HP/AI는 아직 구현하지 않았다.
+
+
+## 현재 구현 확장 (Phase 2)
+씬 구성은 유지하며 Battle(Node)가 BattleManager(RefCounted)를 소유한다. BattleManager → RallyManager/EnemyAI, RallyManager → TimingJudge/PatternData/EnemyAI. CourtView/UI는 출력만 담당한다. BattleManager가 RallyManager의 종료 Signal을 연결하여 HP를 처리한다. Autoload/외부 의존성 추가 없음.
+
+새 파일:
+- scripts/core/battle_config.gd + resources/balance/battle.tres: HP/피해/공격 성능/기본 AI 점수/시드.
+- scripts/core/enemy_ai.gd: 시드 RNG, 공격 성능 기반 4종 수비, reset.
+- scripts/core/battle_manager.gd: 전투 시작/HP/피해 중복 및 오래된 이벤트 차단/승패.
+- tests/battle_tests.gd: 전투/AI/전투 종료 및 30/60/120fps 시드 캠페인.
+- tests/fixtures/defense_ai.gd: 원하는 수비 결과를 지정하는 테스트 전용 fixture. 일반 씬에서는 사용하지 않음.
+- tests/phase2_render_smoke.gd: HP/피격/승패/터치 재시작 렌더링 검증.
+
+이벤트 흐름: 입력 → BattleManager.swing → RallyManager.swing → TimingJudge. 성공은 기존 HIT_PENDING → PLAYER_RETURN. 반환 도착 시 ENEMY_DEFENSE에서 수비를 한 번 계산한다. 성공이면 ENEMY_ATTACK(발사 준비) → PLAYER_TIMING으로 즉시 연결, 실패이면 RALLY_RESULT에서 rally_resolved(rally_id,loser,strong)를 발생시킨다. 플레이어 Miss도 동일 종료 경로.
+BattleManager는 ACTIVE, 현재 battle_id/rally_id, RALLY_RESULT 상태, 마지막 피해 rally_id를 검증하고 피해를 한 번 적용한다. hp_changed/damaged/battle_ended를 표시 노드에 연결한다. 최종 HP가 0이면 **UI/피해 Signal 전에** BattleManager와 RallyManager를 BATTLE_END로 고정한다. 이후 advance/swing 및 이전 ID 이벤트는 상태를 변경하지 못한다. 재시작은 ID를 갱신하고 HP 100으로 복원한다. 비동기 랠리 타이머는 없다.
+
+RallyManager의 BATTLE_END는 전투 모델 종료 표시이며 STOPPED는 명시적 중단. ENEMY_ATTACK/ENEMY_DEFENSE는 계산 중 즉시 전환하는 상태라 별도의 프레임/타이머를 추가하지 않는다. BATTLE_START는 BattleManager의 시작 전 상태, 실제 시작 후 ACTIVE가 랠리를 소유한다.
+AI를 전달하지 않은 순수 RallyManager는 기존 Phase 1 무조건 리턴 루프를 유지하여 회귀 테스트한다. 정상 플레이 씬은 항상 BattleManager와 EnemyAI를 사용한다. 구 render_smoke.gd도 12리턴 회귀만을 위한 명시적 AI fixture를 사용한다.
+
+UI: 상대 HP 상단 y94, 플레이어 HP 하단 y511, 314×8px ProgressBar, 수치 별도 표시. 기본 theme font의 최소 높이를 제거하고 최종 크기를 재설정해 리턴 수/판정과 겹치지 않는다. 피격 시 캐릭터 색/피해량과 HP 강조, 상대 수비 판정, 강한 공 표시. 결과 패널은 전투 종료 시 표시하며 Pause를 차단한다. 결과 PLAY AGAIN은 터치로 재시작 가능. 정지 중 R/Restart는 기존 정지를 유지하고, 종료 후 재시작은 수동 정지를 해제한다. focus/background 정지는 별도로 유지한다.
+
+자동 검증은 기존 302개에 전투/AI/실제 씬 결과 UI를 확장했다. 화면 검사 일부는 테스트 게임 시계를 제어하여 기다림을 줄이며 해당 결과를 실제 경기 플레이 시간 검증으로 보고하지 않는다. 신호/이벤트 식별자와 HP는 순수 모델에서 검사한다.

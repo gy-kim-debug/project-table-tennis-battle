@@ -11,6 +11,12 @@ var contact_at: float = -10.0
 var bounce_at: float = -10.0
 var bounce_position: Vector2
 var waiting: bool = true
+var strong_ball: bool = false
+var enemy_swing_at: float = -10.0
+var player_hit_at: float = -10.0
+var enemy_hit_at: float = -10.0
+var player_damage: int = 0
+var enemy_damage: int = 0
 
 # Fixed 2D skew: depth axis shifts left toward the viewer (20 degrees).
 # Artwork/20-degree composition remains subject to the user's visual review.
@@ -22,6 +28,7 @@ func project_point(point: Vector3, ground: bool = false) -> Vector2:
 func update_state(model: RefCounted, now_us: int) -> void:
 	time_seconds = float(now_us) / 1000000.0
 	show_ball = model.ball_visible()
+	strong_ball = model.incoming_strong and model.state != Rally.State.PLAYER_RETURN
 	waiting = not show_ball
 	if show_ball:
 		ball = model.ball_point(now_us)
@@ -31,6 +38,9 @@ func clear_feedback() -> void:
 	swing_at = -10.0
 	contact_at = -10.0
 	bounce_at = -10.0
+	enemy_swing_at = -10.0
+	player_hit_at = -10.0
+	enemy_hit_at = -10.0
 
 func _draw() -> void:
 	draw_rect(Rect2(0, 0, 360, 640), Color("111b30"))
@@ -40,7 +50,7 @@ func _draw() -> void:
 	draw_rect(Rect2(16, 153, 328, 365), Color("1b2b40"), false, 2)
 	draw_colored_polygon(PackedVector2Array([Vector2(34, 436), Vector2(273, 478), Vector2(302, 494), Vector2(39, 457)]), Color("0b1424"))
 	# Opponent faces the player, fixed in place.
-	_character(Vector2(213, 200), false, false)
+	_character(Vector2(213, 200), false, time_seconds - enemy_swing_at < 0.22)
 	var corners: PackedVector2Array = PackedVector2Array([
 		project_point(Vector3(-1, 0, 0)), project_point(Vector3(1, 0, 0)),
 		project_point(Vector3(1, 1, 0)), project_point(Vector3(-1, 1, 0))])
@@ -79,13 +89,19 @@ func _draw() -> void:
 		var radius: float = roundf(lerpf(3.0, 5.0, clampf(ball.y, 0.0, 1.0)))
 		draw_rect(Rect2(shadow - Vector2(radius + 2, 2), Vector2((radius + 2) * 2, 4)), Color("18515c"))
 		draw_rect(Rect2(pos - Vector2(radius + 1, radius + 1), Vector2.ONE * (radius + 1) * 2), INK)
-		draw_rect(Rect2(pos - Vector2(radius, radius), Vector2.ONE * radius * 2), Color("fff4d2"))
+		draw_rect(Rect2(pos - Vector2(radius, radius), Vector2.ONE * radius * 2), Color("ffd166") if strong_ball else Color("fff4d2"))
 	if time_seconds - contact_at < 0.12:
 		for offset in [Vector2(-18, -4), Vector2(17, -9), Vector2(8, 15)]:
 			draw_rect(Rect2(hit + offset, Vector2(3, 3)), Color("ffd166"))
 
 func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	var color: Color = Color("54c7e6") if player else Color("ef7869")
+	var hit_at: float = player_hit_at if player else enemy_hit_at
+	if time_seconds - hit_at < 0.3:
+		color = Color("fff4d2")
+	if time_seconds - hit_at < 0.75:
+		var amount: int = player_damage if player else enemy_damage
+		draw_string(ThemeDB.fallback_font, feet + Vector2(32, -65 - (time_seconds - hit_at) * 18.0), "-%d" % amount, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("ef7869"))
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))
 	draw_rect(Rect2(feet + Vector2(5, -20), Vector2(11, 20)), Color("26344b"))
@@ -104,3 +120,11 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	draw_line(hand, hand + Vector2(9, -7), Color("ba9c74"), 3, false)
 	draw_rect(Rect2(hand + Vector2(6, -22), Vector2(17, 17)), INK)
 	draw_rect(Rect2(hand + Vector2(8, -20), Vector2(13, 13)), Color("ef7869") if player else Color("54c7e6"))
+
+func show_damage(side: int, amount: int, now: float) -> void:
+	if side == 0:
+		player_hit_at = now
+		player_damage = amount
+	else:
+		enemy_hit_at = now
+		enemy_damage = amount

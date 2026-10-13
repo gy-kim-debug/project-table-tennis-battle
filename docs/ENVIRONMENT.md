@@ -39,3 +39,7 @@ Godot 버전 명령은 성공했으나 `Fontconfig error: No writable cache dire
 - 기존 Xorg dummy 드라이버로 가상 디스플레이를 실행, Mesa llvmpipe OpenGL 4.5 사용. 가상 드라이버의 V-Sync 변경 미지원 경고는 발생했으며 실행은 성공했다.
 - 최초 editor import는 기본 config 경로/로컬 디버그 소켓 접근 오류가 있었다. 이후 쓰기 가능한 XDG 경로와 로컬 연결 권한으로 editor import를 재실행하여 오류 없이 종료했다. 엔진 parse/런타임 테스트도 성공했다.
 - 패키지 설치/외부 다운로드 없음. iOS 환경 준비 상태는 이전과 같이 미확인이다.
+
+
+## Phase 2 실행 기록
+같은 Godot/XDG/X11/OpenGL 환경에서 전체 테스트 521개와 editor import를 통과했다. 전투 화면 검증은 테스트 시계를 제어한 자동 검사이며 사용자 직접 플레이나 iPhone 검증이 아니다. 패키지/외부 의존성 설치 없음.

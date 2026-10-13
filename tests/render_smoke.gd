@@ -28,6 +28,10 @@ func _run() -> void:
 	battle = Battle.instantiate()
 	root.add_child(battle)
 	await process_frame
+	# Isolate the 12-return Phase 1 regression from Phase 2's stochastic defense.
+	var fixture: RefCounted = preload("res://tests/fixtures/defense_ai.gd").new()
+	battle.combat.enemy = fixture
+	battle.rally.enemy = fixture
 	launched_at = Time.get_ticks_usec()
 	while battle.rally.rally_count < 12:
 		await process_frame

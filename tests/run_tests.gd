@@ -5,6 +5,7 @@ const Config = preload("res://scripts/core/timing_config.gd")
 const Clock = preload("res://scripts/core/game_clock.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
 const Pattern = preload("res://scripts/core/pattern_data.gd")
+const BattleTests = preload("res://tests/battle_tests.gd")
 const BattleScene = preload("res://scenes/battle/battle.tscn")
 var checks: int = 0
 var failures: int = 0
@@ -31,8 +32,10 @@ func _run() -> void:
 	_test_rally()
 	_test_frame_rates()
 	_test_pattern()
+	BattleTests.new().run(check)
 	await _test_scene_inputs()
-	print("PHASE 1 TESTS: %d checks, %d failures" % [checks, failures])
+	await _test_scene_battle()
+	print("CORE + BATTLE TESTS: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
 
 func _test_judge() -> void:
@@ -244,4 +247,72 @@ func _test_scene_inputs() -> void:
 	check(not battle.rally.judge.consumed, "touch GUI does not swing through")
 	check(battle.request_swing() == -1, "touch pause blocks gameplay")
 	battle.queue_free()
+	await process_frame
+
+func _test_scene_battle() -> void:
+	var battle: Node = BattleScene.instantiate()
+	root.add_child(battle)
+	await process_frame
+	battle.set_process(false)
+	battle.backgrounded = false
+	battle.manually_paused = false
+	battle._sync_pause()
+	var fixture: RefCounted = preload("res://tests/fixtures/defense_ai.gd").new()
+	check(battle.ui.enemy_hp_bar.size.y <= 8 and battle.ui.player_hp_bar.size.y <= 8, "HP bars fit reserved 8px rows")
+	fixture.grade = Judge.Grade.MISS
+	battle.combat.enemy = fixture
+	battle.rally.enemy = fixture
+	battle.combat.start(0)
+	battle.combat.advance(800000)
+	for i in range(6):
+		if battle.rally.state == Rally.State.RALLY_RESULT:
+			battle.combat.advance(battle.rally.phase_start_us + 800000)
+		battle.clock.origin_us = Time.get_ticks_usec() - battle.rally.target_us
+		battle.clock.excluded_us = 0
+		var press: InputEventKey = InputEventKey.new()
+		press.keycode = KEY_SPACE
+		press.pressed = true
+		Input.parse_input_event(press)
+		await process_frame
+		var release: InputEventKey = press.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+		battle.combat.advance(battle.clock.now_us())
+		check(battle.combat.enemy_hp == maxi(100 - i * 18, 0), "scene successful hit has no immediate damage")
+		battle.combat.advance(battle.rally.phase_start_us + 850000)
+		battle._refresh()
+		check(int(battle.ui.enemy_hp_bar.value) == battle.combat.enemy_hp, "scene HP UI matches enemy damage")
+	check(battle.ui.result_panel.visible and battle.ui.result_title.text == "VICTORY", "scene shows victory result")
+	check(battle.ui.pause_button.disabled and battle.request_swing() == -1, "result disables battle controls")
+	var previous_session: int = battle.combat.battle_id
+	# Touch outside the result panel cannot attack a finished battle.
+	await _touch_at(Vector2(180, 480))
+	check(battle.combat.battle_id == previous_session and battle.combat.enemy_hp == 0, "outside-result touch is harmless")
+	await _touch_at(Vector2(180, 378))
+	check(battle.combat.battle_id == previous_session + 1, "touch PLAY AGAIN starts exactly one new battle")
+	check(battle.combat.enemy_hp == 100 and battle.combat.player_hp == 100, "result retry restores both HP")
+	check(not battle.ui.result_panel.visible and int(battle.ui.enemy_hp_bar.value) == 100, "retry clears result and refreshes HP UI")
+	fixture.grade = Judge.Grade.GOOD
+	battle.combat.start(0)
+	for i in range(9):
+		battle.combat.advance(battle.rally.phase_start_us + 800000)
+		battle.combat.advance(battle.rally.target_us + 180001)
+	battle._refresh()
+	check(battle.ui.result_panel.visible and battle.ui.result_title.text == "DEFEAT", "scene shows defeat result")
+	check(int(battle.ui.player_hp_bar.value) == 0 and battle.combat.enemy_hp == 100, "scene defeat HP UI matches logic")
+	var old_target: int = battle.rally.target_us
+	battle.combat.advance(old_target + 99999999)
+	check(battle.combat.player_hp == 0 and battle.rally.state == Rally.State.BATTLE_END, "delayed frame cannot restart ended battle")
+	battle.queue_free()
+	await process_frame
+
+func _touch_at(position: Vector2) -> void:
+	var press: InputEventScreenTouch = InputEventScreenTouch.new()
+	press.position = root.get_screen_transform() * position
+	press.pressed = true
+	Input.parse_input_event(press)
+	await process_frame
+	var release: InputEventScreenTouch = press.duplicate()
+	release.pressed = false
+	Input.parse_input_event(release)
 	await process_frame

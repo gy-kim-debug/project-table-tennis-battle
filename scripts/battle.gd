@@ -1,12 +1,14 @@
 extends Node
 
 const Clock = preload("res://scripts/core/game_clock.gd")
-const Rally = preload("res://scripts/core/rally_manager.gd")
+const Combat = preload("res://scripts/core/battle_manager.gd")
+const Balance = preload("res://resources/balance/battle.tres")
 const Config = preload("res://resources/balance/timing.tres")
 const Pattern = preload("res://resources/patterns/basic_return.tres")
 
 var clock: RefCounted = Clock.new()
-var rally: RefCounted = Rally.new(Config, Pattern)
+var combat: RefCounted = Combat.new(Balance, Config, Pattern)
+var rally: RefCounted = combat.rally
 var manually_paused: bool = false
 var backgrounded: bool = false
 @onready var court: Node2D = $CourtView
@@ -16,14 +18,17 @@ func _ready() -> void:
 	rally.judged.connect(_on_judged)
 	rally.returned.connect(_on_returned)
 	rally.bounced.connect(_on_bounced)
+	rally.enemy_defended.connect(_on_enemy_defended)
+	combat.damaged.connect(_on_damaged)
+	combat.battle_ended.connect(_on_battle_ended)
 	ui.pause_requested.connect(toggle_pause)
 	ui.restart_requested.connect(restart)
-	rally.start(clock.now_us())
+	combat.start(clock.now_us())
 	_refresh()
 
 func _process(_delta: float) -> void:
 	if not clock.paused:
-		rally.advance(clock.now_us())
+		combat.advance(clock.now_us())
 	_refresh()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -47,9 +52,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func request_swing() -> int:
 	if clock.paused:
 		return -1
-	return rally.swing(clock.now_us())
+	return combat.swing(clock.now_us())
 
 func toggle_pause() -> void:
+	if combat.state == Combat.State.BATTLE_END:
+		return
 	manually_paused = not manually_paused
 	_sync_pause()
 
@@ -60,10 +67,14 @@ func _sync_pause() -> void:
 
 func restart() -> void:
 	# No pending SceneTreeTimer callbacks: resetting the model replaces the rally.
-	rally.stop()
-	rally.start(clock.now_us())
+	if combat.state == Combat.State.BATTLE_END:
+		manually_paused = false
+		_sync_pause()
+	combat.start(clock.now_us())
 	ui.clear_feedback()
 	court.clear_feedback()
+	ui.reset_result()
+	_refresh()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
@@ -87,4 +98,19 @@ func _on_bounced(_returning: bool) -> void:
 func _refresh() -> void:
 	var now: int = clock.now_us()
 	court.update_state(rally, now)
-	ui.update_state(rally, now, clock.paused)
+	ui.update_state(rally, now, clock.paused, combat)
+
+func _on_enemy_defended(grade: int) -> void:
+	ui.show_enemy_defense(grade, float(clock.now_us()) / 1000000.0)
+	court.enemy_swing_at = float(clock.now_us()) / 1000000.0
+
+func _on_damaged(side: int, amount: int, _remaining: int) -> void:
+	var now: float = float(clock.now_us()) / 1000000.0
+	court.show_damage(side, amount, now)
+	ui.show_damage(side, amount, now)
+
+func _on_battle_ended(winner: int) -> void:
+	ui.show_result(winner, rally.best_count)
+
+func _exit_tree() -> void:
+	rally.stop()

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/battle_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+max_hp = 100
+normal_damage = 12
+strong_damage = 18
+attack_power = PackedInt32Array(100, 65, 30, 0)
+defense_ability = 60.0
+random_min = -45.0
+random_max = 45.0
+attack_weight = 0.3
+perfect_score = 65.0
+good_score = 40.0
+bad_score = 15.0
+fixed_seed = false
+seed_value = 20261013

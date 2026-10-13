@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const Rally = preload("res://scripts/core/rally_manager.gd")
+const Combat = preload("res://scripts/core/battle_manager.gd")
 const Judge = preload("res://scripts/core/timing_judge.gd")
 signal pause_requested
 signal restart_requested
@@ -14,6 +15,17 @@ var status_label: Label
 var pause_button: Button
 var resume_button: Button
 var overlay: Panel
+var enemy_hp_bar: ProgressBar
+var player_hp_bar: ProgressBar
+var enemy_hp_label: Label
+var player_hp_label: Label
+var defense_label: Label
+var result_panel: Panel
+var result_title: Label
+var result_caption: Label
+var player_hit_until: float = -1.0
+var enemy_hit_until: float = -1.0
+var defense_until: float = -1.0
 var feedback_until: float = -1.0
 var safe_top: float = 0.0
 var safe_bottom: float = 640.0
@@ -24,16 +36,16 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	_label("ONE TAP / RALLY", Vector2(22, 22), Vector2(220, 26), 22, Color("fff4d2"))
-	_label("TIMING PROTOTYPE  ·  PHASE 01", Vector2(23, 53), Vector2(250, 20), 11, Color("829aae"))
-	count_label = _label("00", Vector2(22, 89), Vector2(94, 47), 40, Color("fff4d2"))
+	_label("HP BATTLE PROTOTYPE  ·  PHASE 02", Vector2(23, 53), Vector2(250, 20), 11, Color("829aae"))
+	count_label = _label("00", Vector2(22, 108), Vector2(94, 30), 24, Color("fff4d2"))
 	_label("RETURNS", Vector2(23, 133), Vector2(100, 18), 10, Color("829aae"))
 	best_label = _label("BEST 00", Vector2(184, 112), Vector2(145, 20), 14, Color("b9dfcb"))
 	best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	pause_button = _button("II", Rect2(284, 22, 52, 40))
 	pause_button.pressed.connect(func(): pause_requested.emit())
-	feedback = _label("GET READY", Vector2(30, 523), Vector2(300, 30), 25, Color("ffd166"))
+	feedback = _label("GET READY", Vector2(30, 533), Vector2(300, 30), 25, Color("ffd166"))
 	feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	error_label = _label("", Vector2(30, 554), Vector2(300, 20), 12, Color("829aae"))
+	error_label = _label("", Vector2(30, 560), Vector2(300, 20), 12, Color("829aae"))
 	error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label = _label("Tap once when the ball meets the ring", Vector2(15, 589), Vector2(330, 22), 13, Color("b9dfcb"))
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -64,6 +76,16 @@ func _ready() -> void:
 	restart_button.reparent(overlay)
 	restart_button.position = Vector2(161, 64)
 	restart_button.pressed.connect(func(): restart_requested.emit())
+	_label("ENEMY", Vector2(22, 74), Vector2(120, 16), 10, Color("ef7869"))
+	enemy_hp_label = _label("100 / 100", Vector2(218, 74), Vector2(118, 16), 10, Color("fff4d2"))
+	enemy_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	enemy_hp_bar = _hp_bar(Vector2(22, 94), Color("ef7869"))
+	_label("PLAYER", Vector2(22, 491), Vector2(120, 16), 10, Color("54c7e6"))
+	player_hp_label = _label("100 / 100", Vector2(218, 491), Vector2(118, 16), 10, Color("fff4d2"))
+	player_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	player_hp_bar = _hp_bar(Vector2(22, 511), Color("54c7e6"))
+	defense_label = _label("", Vector2(22, 160), Vector2(148, 20), 11, Color("b9dfcb"))
+	_build_result_panel()
 	get_viewport().size_changed.connect(_layout_safe_area)
 	_layout_safe_area()
 
@@ -116,13 +138,17 @@ func show_judgement(grade: int, error_ms: float, now: float) -> void:
 
 func clear_feedback() -> void:
 	feedback_until = -1.0
+	player_hit_until = -1.0
+	enemy_hit_until = -1.0
+	defense_until = -1.0
+	defense_label.text = ""
 	error_label.text = ""
 
 func set_paused(value: bool) -> void:
-	overlay.visible = value
+	overlay.visible = value and not result_panel.visible
 	pause_button.text = ">" if value else "II"
 
-func update_state(model: RefCounted, now_us: int, paused: bool) -> void:
+func update_state(model: RefCounted, now_us: int, paused: bool, combat: RefCounted = null) -> void:
 	count_label.text = "%02d" % model.rally_count
 	best_label.text = "BEST %02d" % model.best_count
 	set_paused(paused)
@@ -137,4 +163,89 @@ func update_state(model: RefCounted, now_us: int, paused: bool) -> void:
 				feedback.text = "RETURN"
 			_:
 				feedback.text = "WATCH THE BALL"
+	if now > defense_until:
+		defense_label.text = ""
 	status_label.text = "One swing per ball · early taps count" if model.state == Rally.State.PLAYER_RETURN else "Tap once when the ball meets the ring"
+	if model.incoming_strong and model.state in [Rally.State.PLAYER_TIMING, Rally.State.HIT_PENDING]:
+		status_label.text = "STRONG BALL — time your swing"
+		if combat != null:
+			status_label.text = "STRONG BALL — missing costs %d HP" % combat.config.strong_damage
+	if combat != null:
+		_update_hp(enemy_hp_bar, enemy_hp_label, combat.enemy_hp, combat.config.max_hp)
+		_update_hp(player_hp_bar, player_hp_label, combat.player_hp, combat.config.max_hp)
+		enemy_hp_bar.modulate = Color("ffd166") if now < enemy_hit_until else Color.WHITE
+		player_hp_bar.modulate = Color("ffd166") if now < player_hit_until else Color.WHITE
+		pause_button.disabled = combat.state == Combat.State.BATTLE_END
+		if combat.state == Combat.State.BATTLE_END:
+			feedback.text = "VICTORY" if combat.winner == Combat.Side.PLAYER else "DEFEAT"
+			status_label.text = "Battle over — tap PLAY AGAIN"
+
+func _hp_bar(pos: Vector2, color: Color) -> ProgressBar:
+	var bar: ProgressBar = ProgressBar.new()
+	bar.position = pos
+	bar.size = Vector2(314, 8)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.show_percentage = false
+	# ProgressBar still includes its theme font in the minimum height.
+	bar.add_theme_font_size_override("font_size", 1)
+	var background: StyleBoxFlat = StyleBoxFlat.new()
+	background.bg_color = Color("26344b")
+	var fill: StyleBoxFlat = StyleBoxFlat.new()
+	fill.bg_color = color
+	bar.add_theme_stylebox_override("background", background)
+	bar.add_theme_stylebox_override("fill", fill)
+	root.add_child(bar)
+	bar.size = Vector2(314, 8)
+	return bar
+
+func _update_hp(bar: ProgressBar, label: Label, value: int, maximum: int) -> void:
+	bar.max_value = maximum
+	bar.value = value
+	label.text = "%d / %d" % [value, maximum]
+
+func show_enemy_defense(grade: int, now: float) -> void:
+	defense_label.text = "ENEMY " + Judge.NAMES[grade]
+	defense_until = now + 0.8
+
+func show_damage(side: int, _amount: int, now: float) -> void:
+	if side == Combat.Side.PLAYER:
+		player_hit_until = now + 0.35
+	else:
+		enemy_hit_until = now + 0.35
+
+func _build_result_panel() -> void:
+	result_panel = Panel.new()
+	result_panel.position = Vector2(24, 244)
+	result_panel.size = Vector2(312, 180)
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color("0b1020")
+	style.border_color = Color("ffd166")
+	style.set_border_width_all(2)
+	result_panel.add_theme_stylebox_override("panel", style)
+	root.add_child(result_panel)
+	result_panel.hide()
+	result_title = _label("VICTORY", Vector2.ZERO, Vector2(272, 36), 28, Color("ffd166"))
+	result_title.reparent(result_panel)
+	result_title.position = Vector2(20, 18)
+	result_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_caption = _label("", Vector2.ZERO, Vector2(272, 30), 12, Color("b9dfcb"))
+	result_caption.reparent(result_panel)
+	result_caption.position = Vector2(20, 62)
+	result_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var retry: Button = _button("PLAY AGAIN", Rect2(0, 0, 272, 54))
+	retry.reparent(result_panel)
+	retry.position = Vector2(20, 106)
+	retry.pressed.connect(func(): restart_requested.emit())
+
+func show_result(winner: int, best: int) -> void:
+	result_title.text = "VICTORY" if winner == Combat.Side.PLAYER else "DEFEAT"
+	result_title.add_theme_color_override("font_color", Color("ffd166") if winner == Combat.Side.PLAYER else Color("ef7869"))
+	result_caption.text = "Opponent HP reached zero" if winner == Combat.Side.PLAYER else "Your HP reached zero"
+	result_caption.text += "\nBEST RALLY  %02d" % best
+	result_panel.show()
+	overlay.hide()
+	pause_button.disabled = true
+
+func reset_result() -> void:
+	result_panel.hide()
+	pause_button.disabled = false

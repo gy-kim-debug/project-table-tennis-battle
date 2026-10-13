@@ -8,6 +8,7 @@ var contact_frame: int = 3
 var animation: StringName = &"idle"
 var started_us: int = 0
 var last_now: float = 0.0
+var hold_last: bool = false
 
 func configure(role: String) -> bool:
 	var path: String = "res://assets/characters/%s/frames.tres" % role
@@ -31,11 +32,13 @@ func available() -> bool:
 func reset() -> void:
 	animation = &"idle"
 	started_us = 0
+	hold_last = false
 
 func swing_at(contact_time: float) -> void:
 	if not available():
 		return
 	animation = &"swing"
+	hold_last = false
 	# The contact pose aligns to the logical contact time; it cannot change judgement.
 	started_us = roundi(contact_time * 1000000.0) - roundi(float(contact_frame) * 1000000.0 / frames.get_animation_speed(&"swing"))
 
@@ -43,6 +46,14 @@ func miss_at(now: float) -> void:
 	if not available():
 		return
 	animation = &"miss"
+	hold_last = false
+	started_us = roundi(now * 1000000.0)
+
+func finish_at(won: bool, now: float) -> void:
+	if not available():
+		return
+	animation = &"idle" if won else &"miss"
+	hold_last = not won
 	started_us = roundi(now * 1000000.0)
 
 func index_at(now: float) -> int:
@@ -53,6 +64,8 @@ func index_at(now: float) -> int:
 	var fps: float = frames.get_animation_speed(animation)
 	var elapsed_us: int = maxi(0, roundi(now * 1000000.0) - started_us)
 	if animation != &"idle" and elapsed_us >= roundi(float(count) * 1000000.0 / fps):
+		if hold_last:
+			return count - 1
 		animation = &"idle"
 		started_us = roundi(now * 1000000.0)
 		count = frames.get_frame_count(animation)

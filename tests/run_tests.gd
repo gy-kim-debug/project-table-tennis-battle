@@ -39,6 +39,7 @@ func _run() -> void:
 	CharacterTests.new().run(check)
 	await _test_scene_inputs()
 	await _test_scene_battle()
+	await _test_presentation()
 	await _test_scene_difficulty()
 	print("CORE + BATTLE TESTS: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures else 0)
@@ -329,6 +330,36 @@ func _touch_at(position: Vector2) -> void:
 	var release: InputEventScreenTouch = press.duplicate()
 	release.pressed = false
 	Input.parse_input_event(release)
+	await process_frame
+
+func _test_presentation() -> void:
+	var battle: Node = BattleScene.instantiate()
+	root.add_child(battle)
+	await process_frame
+	battle.set_process(false)
+	battle.sound.set_enabled(true, false)
+	battle.ui.set_sound_enabled(true)
+	battle.combat.start(0)
+	battle.combat.advance(800000)
+	var target: int = battle.rally.target_us
+	battle.clock.origin_us = Time.get_ticks_usec() - target
+	check(battle.combat.swing(target) == Judge.Grade.PERFECT, "presentation fixture returns Perfect")
+	battle.combat.advance(target)
+	check(battle.court.freeze_from_us == target and battle.court.freeze_until_us == target + 45000, "Perfect gets 45ms visual hit stop")
+	battle.court.update_state(battle.rally, target + 20000)
+	check(is_equal_approx(battle.court.time_seconds, float(target) / 1000000.0), "visual hit stop holds presentation time")
+	battle.court.update_state(battle.rally, target + 45000)
+	check(is_equal_approx(battle.court.time_seconds, float(target + 45000) / 1000000.0), "visual hit stop resumes on boundary")
+	check(battle.sound.cue_counts.get("perfect", 0) == 1, "Perfect impact plays once at logical contact")
+	var before: int = int(battle.sound.cue_counts.get("miss", 0))
+	battle.sound.set_enabled(false, false)
+	battle.sound.play_cue("miss")
+	check(battle.sound.cue_counts.get("miss", 0) == before, "muted audio ignores cues")
+	battle.ui.set_sound_enabled(false)
+	check(battle.ui.sound_button.text == "SOUND OFF", "pause menu shows muted setting")
+	battle.restart()
+	check(battle.court.freeze_from_us == -1 and battle.court.winner_side == -1, "restart clears action and result presentation")
+	battle.queue_free()
 	await process_frame
 
 func _test_scene_difficulty() -> void:

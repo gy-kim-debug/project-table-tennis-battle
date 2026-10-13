@@ -6,6 +6,7 @@ const Judge = preload("res://scripts/core/timing_judge.gd")
 signal pause_requested
 signal difficulty_requested(index: int)
 signal restart_requested
+signal sound_requested(enabled: bool)
 
 var difficulty_picker: OptionButton
 var pressure_label: Label
@@ -19,6 +20,8 @@ var error_label: Label
 var status_label: Label
 var pause_button: Button
 var resume_button: Button
+var sound_button: Button
+var sound_enabled: bool = true
 var overlay: Panel
 var enemy_hp_bar: ProgressBar
 var player_hp_bar: ProgressBar
@@ -55,7 +58,7 @@ func _ready() -> void:
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overlay = Panel.new()
 	overlay.position = Vector2(24, 244)
-	overlay.size = Vector2(312, 218)
+	overlay.size = Vector2(312, 260)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color("0b1020")
 	style.border_color = Color("54c7e6")
@@ -94,6 +97,11 @@ func _ready() -> void:
 	pressure_label = _label("ENEMY PRESSURE 0 / 100", Vector2.ZERO, Vector2(282, 20), 11, Color("ffd166"))
 	pressure_label.reparent(overlay)
 	pressure_label.position = Vector2(15, 184)
+	sound_button = _button("SOUND ON", Rect2(0, 0, 282, 34))
+	sound_button.reparent(overlay)
+	sound_button.position = Vector2(15, 211)
+	sound_button.size = Vector2(282, 34)
+	sound_button.pressed.connect(_toggle_sound)
 	_label("ENEMY", Vector2(22, 74), Vector2(120, 16), 10, Color("ef7869"))
 	enemy_hp_label = _label("100 / 100", Vector2(218, 74), Vector2(118, 16), 10, Color("fff4d2"))
 	enemy_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -167,6 +175,14 @@ func set_paused(value: bool) -> void:
 	overlay.visible = value and not result_panel.visible
 	pause_button.text = ">" if value else "II"
 
+func set_sound_enabled(value: bool) -> void:
+	sound_enabled = value
+	sound_button.text = "SOUND ON" if value else "SOUND OFF"
+
+func _toggle_sound() -> void:
+	set_sound_enabled(not sound_enabled)
+	sound_requested.emit(sound_enabled)
+
 func update_state(model: RefCounted, now_us: int, paused: bool, combat: RefCounted = null) -> void:
 	count_label.text = "%02d" % model.rally_count
 	best_label.text = "BEST %02d" % model.best_count
@@ -215,6 +231,8 @@ func _hp_bar(pos: Vector2, color: Color) -> ProgressBar:
 	bar.add_theme_font_size_override("font_size", 1)
 	var background: StyleBoxFlat = StyleBoxFlat.new()
 	background.bg_color = Color("26344b")
+	background.border_color = Color("8bcaca")
+	background.set_border_width_all(1)
 	var fill: StyleBoxFlat = StyleBoxFlat.new()
 	fill.bg_color = color
 	bar.add_theme_stylebox_override("background", background)

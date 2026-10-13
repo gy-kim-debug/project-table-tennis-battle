@@ -12,8 +12,10 @@ var combat: RefCounted = Combat.new(Balance, Config, Pattern, null, Catalog.diff
 var rally: RefCounted = combat.rally
 var manually_paused: bool = false
 var backgrounded: bool = false
+var last_sounded_ball_id: int = -1
 @onready var court: Node2D = $CourtView
 @onready var ui: CanvasLayer = $BattleUI
+@onready var sound: Node = $SoundController
 
 func _ready() -> void:
 	rally.judged.connect(_on_judged)
@@ -25,6 +27,8 @@ func _ready() -> void:
 	ui.pause_requested.connect(toggle_pause)
 	ui.restart_requested.connect(restart)
 	ui.difficulty_requested.connect(select_difficulty)
+	ui.sound_requested.connect(_on_sound_requested)
+	ui.set_sound_enabled(sound.enabled)
 	combat.start(clock.now_us())
 	_refresh()
 
@@ -85,33 +89,49 @@ func _notification(what: int) -> void:
 
 func _on_judged(grade: int, error_ms: float) -> void:
 	ui.show_judgement(grade, error_ms, float(clock.now_us()) / 1000000.0)
-	court.swing_at = float(clock.now_us()) / 1000000.0
-	court.animate_player(grade, court.swing_at, float(rally.contact_us) / 1000000.0)
+	if combat.state != Combat.State.BATTLE_END:
+		court.swing_at = float(clock.now_us()) / 1000000.0
+		court.animate_player(grade, court.swing_at, float(rally.contact_us) / 1000000.0)
+	sound.play_cue("miss" if grade == 3 else "swing")
 
 func _on_returned(_count: int) -> void:
-	court.contact_at = float(clock.now_us()) / 1000000.0
+	court.show_return(rally.outgoing_grade, rally.phase_start_us)
+	sound.play_cue("perfect" if rally.outgoing_grade == 0 else "good")
 
 func _on_bounced(_returning: bool) -> void:
 	court.bounce_at = float(clock.now_us()) / 1000000.0
 	court.bounce_position = court.project_point(rally.ball_point(clock.now_us()), true)
+	sound.play_cue("bounce")
 
 func _refresh() -> void:
 	var now: int = clock.now_us()
 	court.update_state(rally, now)
+	if rally.ball_visible() and rally.ball_id != last_sounded_ball_id:
+		last_sounded_ball_id = rally.ball_id
+		if rally.incoming_strong:
+			sound.play_cue("smash")
 	ui.update_state(rally, now, clock.paused, combat)
 
 func _on_enemy_defended(grade: int) -> void:
 	ui.show_enemy_defense(grade, float(clock.now_us()) / 1000000.0)
 	court.enemy_swing_at = float(clock.now_us()) / 1000000.0
 	court.animate_enemy(grade, court.enemy_swing_at)
+	sound.play_cue("good" if grade < 3 else "miss")
 
 func _on_damaged(side: int, amount: int, _remaining: int) -> void:
 	var now: float = float(clock.now_us()) / 1000000.0
 	court.show_damage(side, amount, now)
+	court.animate_damage(side, now)
 	ui.show_damage(side, amount, now)
+	sound.play_cue("damage")
 
 func _on_battle_ended(winner: int) -> void:
+	court.show_result(winner, float(clock.now_us()) / 1000000.0)
 	ui.show_result(winner, rally.best_count)
+	sound.play_cue("victory" if winner == Combat.Side.PLAYER else "defeat")
+
+func _on_sound_requested(enabled: bool) -> void:
+	sound.set_enabled(enabled)
 
 func _exit_tree() -> void:
 	rally.stop()

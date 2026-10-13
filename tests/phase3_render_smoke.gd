@@ -123,5 +123,8 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	await capture("phase3-tall-defeat")
+	battle.queue_free()
+	await process_frame
+	await create_timer(0.6).timeout
 	print("PHASE 3 RENDER PASS: 5 patterns x 3 profiles, actual dropdown routing, pressure, native-AI victory and defeat")
 	quit()

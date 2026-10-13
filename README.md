@@ -1,6 +1,6 @@
 # 원버튼 2D 도트 탁구 배틀
 
-Godot 4.6.3 stable / GDScript 기반 iPhone 세로형 타이밍 게임. 현재 **Phase 3 전투 + Phase 4 캐릭터·근접 경기장**를 실행할 수 있다. 최종 아트/완성 연출/사운드/iOS 빌드는 아직 준비하지 않았다.
+Godot 4.6.3 stable / GDScript 기반 iPhone 세로형 타이밍 게임. **Phase 5까지의 플레이 가능한 프로토타입**이다. 캐릭터·근접 경기장·판정/피격 연출·효과음이 연결되어 있다. 직접 플레이와 iPhone 빌드 검수는 아직 남아 있다.
 
 ## 실행
 Godot 4.6.3에서 이 폴더의 `project.godot`를 Import하고 **F6 또는 F5**로 실행한다. 명령줄에서도 가능하다:
@@ -18,10 +18,11 @@ godot --path .
 - 숫자는 현재 연속 리턴 수, BEST는 이번 실행의 최고 기록. 재시작해도 BEST는 유지한다.
 - 우측 상단 II 또는 **P/Esc**: 정지/재개. **R**: 랠리 재시작. 정지 상태의 Restart는 정지를 유지하며 Resume으로 이어간다. 종료 결과에서 재시작하면 수동 정지를 해제한다.
 - Pause 메뉴에서 **EASY/NORMAL/HARD** 선택. 난이도 변경은 HP/압박을 초기화하고 새 전투를 시작하며, Resume 전까지 정지를 유지한다. 기본은 NORMAL이다.
+- Pause 메뉴에서 **SOUND ON/OFF** 전환. 선택은 로컬 설정에 저장된다.
 - 경기 화면에 패턴 이름, Pause 메뉴에 상대 압박이 표시된다.
 - 창을 벗어나거나 앱이 백그라운드로 가면 게임 시계를 정지한다. 수동 정지는 복귀 후에도 유지한다.
 - 조기 성공 입력은 공 도착까지 기다린 뒤 리턴. 늦은 성공은 당시 공 위치에서 되돌린다.
-- 화면은 임시 360×640, 세로 고정, Nearest 및 비율 유지/레터박스. UI 문구는 임시 영문이며 한글/최종 폰트는 미정이다.
+- 화면은 프로토타입 기준 360×640, 세로 고정, Nearest 및 비율 유지/레터박스. UI 문구는 임시 영문이며 한글/최종 폰트는 미정이다.
 
 ## 검증 명령
 순수 로직과 실제 씬 입력 경로의 자동 테스트 (디스플레이 불필요):
@@ -47,7 +48,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 
 화면 캡처는 각각 `user://phase1-smoke/`, `user://phase2-smoke/`에 저장된다. `-- /절대/출력/폴더`를 뒤에 붙이면 출력 폴더를 지정할 수 있다. `render_smoke.gd`는 자동 입력 전용 테스트이며 일반 플레이에 자동 입력이 포함되지 않는다.
 
-이번 환경: headless **2,625개 검사 통과**. Linux 가상 X11/OpenGL에서 승리·패배·HP/피격·터치 재시작을 확인했다. 이 전투 화면 검사에서는 테스트 시계를 제어하며 실제 경기 소요 시간을 측정하지 않는다. 사람의 직접 플레이와 iPhone 체감은 미검증이고, 사용자 요청에 따라 개발 후에 확인한다.
+이번 환경: headless **2,636개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도와 Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
 
 ## 데이터 및 구조
 - `resources/balance/timing.tres`: 판정창(ms), 터치 보정(ms), 서브 대기(s).
@@ -55,7 +56,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 - `resources/difficulty/*.tres`: AI 능력·도착 시간 배율·패턴 선택 가중치.
 - `resources/balance/battle.tres`: HP/피해/공격 성능/AI 점수·시드.
 - `scripts/core/`: 시각 출력 없는 판정·시계·패턴·랠리·HP 전투·AI·압박.
-- `scripts/presentation/`: 캐릭터 애니메이션, 임시 경기장 드로잉 및 UI. `scripts/battle.gd`가 이벤트를 연결한다.
+- `scripts/presentation/`: 캐릭터 애니메이션, 근접 경기장/효과, UI, 사운드. `scripts/battle.gd`가 이벤트를 연결한다.
 - iOS 빌드에는 macOS/Xcode, 동일 엔진 버전 Export Template, Apple 서명 및 실기기 준비가 필요하다. 아직 export preset/서명 설정은 없다.
 
 ## 공식 문서
@@ -79,7 +80,7 @@ AI 수비 점수는 난이도별 능력(55/65/75) + 난수[-45,45] − 공격 �
 압박은 Perfect +35, Good +15, Bad −15, 플레이어 Miss 초기화, AI Perfect/Good 수비 −25/−10. 상대 Miss/새 랠리 유지, 새 전투 초기화, 시간 감쇠 없음은 임시 정책이다. 값은 Resource에서 조정하며 최종 재미/경기 길이는 직접 플레이 후 검수한다.
 
 [Phase 3 검증](docs/PHASE3_VALIDATION.md) / [나중에 실행할 사용자 검수](docs/USER_QA.md).
-캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임에 이어 탁구대·네트·공·그림자·배경 에셋과 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다. UI는 배치 조정 단계이며 최종 UI/효과/사운드는 후속 작업이다.
+캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임에 이어 탁구대·네트·공·그림자·배경 에셋과 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다.
 
 
 ## Phase 4 캐릭터
@@ -96,3 +97,14 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/character_render
 ## Phase 4 근접 경기장
 [게임 화면](docs/previews/rear-court-game.png) / [Idle 화면](docs/previews/rear-court-idle.png) / [경기장 검증](docs/PHASE4_COURT_VALIDATION.md).
 화면 구성 값은 `assets/table/layout.json`에서 관리하고 `python tools/assets/build_court.py`로 탁구대·네트·공·배경 PNG를 재생성한다. 개발용 Pillow만 필요하다. 게임 실행에는 Python이 필요 없다. 탁구대 화면 좌표와 공 궤적은 같은 구성 값을 읽는다.
+
+## Phase 5 프로토타입 연출
+
+Perfect 접촉의 45ms 화면 히트 스톱과 픽셀 충격파, 강한 공/Perfect 리턴의 잔상, 피격 숫자·반짝임, 결과 화면 효과를 적용했다. 히트 스톱은 **화면 표시만 잠깐 고정**하고 판정·HP·AI에 쓰는 게임 시계는 유지한다. 캐릭터 승리/패배는 기존 Idle/Miss 프레임을 재사용한다. 효과음 9종은 프로젝트에서 직접 합성한 WAV이며 게임에 연결했고, 음소거 설정은 `user://settings.cfg`에 저장한다.
+
+```sh
+godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase5_render_smoke.gd
+godot --headless --path . --script tests/balance_simulation.gd
+```
+
+화면 검사는 테스트 시계와 fixture로 장면을 재현한다. 밸런스 시뮬레이션은 20개 시드×3난이도×3가지 가정된 입력 실력으로 경기 길이를 추정하며, 현재 수치는 수동 플레이 후 재조정할 초기값이다. 자세한 결과와 남은 검수는 [Phase 5 검증](docs/PHASE5_VALIDATION.md)에 정리했다.

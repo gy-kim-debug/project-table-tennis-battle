@@ -28,6 +28,12 @@ func run(check: Callable) -> void:
 	check.call(actor.animation == &"idle", "miss recovers to idle")
 	actor.reset()
 	check.call(actor.animation == &"idle", "restart clears old character action")
+	actor.finish_at(false, 3.0)
+	check.call(actor.index_at(3.6) == 3 and actor.animation == &"miss", "defeat holds final Miss pose")
+	actor.finish_at(true, 4.0)
+	check.call(actor.animation == &"idle" and not actor.hold_last, "winner returns to idle celebration loop")
+	actor.reset()
+	check.call(not actor.hold_last, "restart clears held defeat pose")
 
 	for role in ["player", "enemy"]:
 		var actual: RefCounted = Animator.new()

@@ -1,35 +1,48 @@
 # 도트 그래픽 에셋 명세
 
-현재 모든 최종 이미지가 **미제작/미제공**이다. 아래 크기·팔레트·프레임 수는 360×640 검토 해상도에 대한 **권장안**이며 최종 확정값이 아니다. 실제 파일은 ChatGPT에서 제작하여 사용자가 제공한다. Codex는 임시 도형, 규격 확인, 통합을 담당한다.
+사용자가 **focused-court-v3.png의 구도·색감·도트 밀도를 공식 그래픽 제작 기준으로 승인**했다. 캐릭터는 128×128 셀 기준으로 제작한다. 최종 개별 PNG/애니메이션은 아직 미제작/미제공이다. 환경/UI 크기·프레임 수·세부 pivot/최종 RGB 팔레트는 통합 검토를 위한 권장안이다. 실제 파일은 ChatGPT에서 제작하여 사용자가 제공하며 Codex는 규격 확인과 통합을 담당한다.
+
+## 승인된 그래픽 제작 기준
+기준 이미지: [경기 장면 집중 시안 v3](concepts/focused-court-v3.png). v1/v2는 비교 기록으로만 유지하며 최신 v3을 우선한다.
+
+- **구도:** 세로 9:16의 가까운 경기 장면. 플레이어는 좌측 아래의 후방 대각선 모습, 상대는 상단에서 플레이어를 마주 본다. 탁구대가 화면 중앙을 크게 채우며 플레이어 상체·라켓·상대·공에 집중한다. 플레이어 하체 일부의 화면 밖 배치는 허용한다. 기존 후방 대각선 20도 고정 시점 요구를 유지하고 실제 게임 좌표/레이어는 통합 단계에서 조정한다. 카메라 이동/회전/추적 연출은 추가하지 않는다.
+- **색감:** 어두운 남색 배경, 청록색 탁구대/플레이어, 붉은 상대/플레이어 라켓, 푸른 상대 라켓, 밝은 아이보리 공. 배경은 캐릭터/공보다 낮은 명도·대비로 표시한다. 금색 강한 공은 기존 전투 표시를 유지한다. 정확한 제한 팔레트 RGB는 개별 에셋 제작 때 시안을 기준으로 정리한다.
+- **도트 밀도:** v3처럼 형태가 읽히는 도트 군집과 명확한 실루엣. 캐릭터 한 프레임 128×128px, 또렷한 정사각 픽셀, 단순한 명암 단계. 옷 무늬/머리카락/운동화는 소형 화면에서 읽히는 수준으로 정리하고 흐린 보간/과도한 미세 질감을 피한다.
+- **배경:** 좁게 보이는 단순한 실내 벽/바닥. 조명 기구·포스터·시계·식물·벤치·관중 등 주의를 끄는 소품을 추가하지 않는다. 공/라켓/타격 위치를 배경 장식보다 우선한다.
+- **가독성:** 일반 공/금색 강한 공과 그림자, 네트 및 타격 위치가 구별되어야 한다. HP/판정은 공과 라켓을 가리지 않는다.
+
+승인 대상은 아트 방향이다. v3 PNG 전체를 실제 게임 배경이나 캐릭터 시트로 사용하지 않는다. 원본은 941×1672px로 약 9:16이며 정확한 128×128 셀 그리드는 아직 검증하지 않았다. 실제 셀/알파/프레임은 제작 후 별도 검사한다. 현재 실행 게임은 360×640/플레이스홀더를 유지하며, 128셀을 표시할 최종 내부 해상도·스케일·접촉점·환경/UI 크기는 통합 전에 함께 검토한다.
 
 ## 공통 규격
-- PNG, 원본 1픽셀 = 내부 화면 1픽셀 기준 제안. 정수 배율과 Nearest, 자동 리사이즈/보간/안티앨리어싱/블러 없음.
-- 팔레트 제안 P1: 배경 #17213B, 그림자 #0B1020, 테이블 #287E83/#185C68, 선/공 #FFF4D2, 플레이어 #54C7E6, 상대 #EF7869, 강조 #FFD166. 흰 공과 테이블 대비를 우선. 확정 아트 팔레트는 Phase 4 검수.
+- PNG, 일관된 원본 1px 도트 그리드. 정수 배율과 Nearest를 우선하며 정확한 표시 배율은 내부 해상도 검토 후 결정한다. 자동 보간/안티앨리어싱/블러 없음.
+- 팔레트 제안 P1: 배경 #17213B, 그림자 #0B1020, 테이블 #287E83/#185C68, 선/공 #FFF4D2, 플레이어 #54C7E6, 상대 #EF7869, 강조 #FFD166. 흰 공과 테이블 대비를 우선. 색상 관계는 승인된 v3 기준이며 이 HEX 목록은 초기 제안이다. 최종 RGB 팔레트는 개별 에셋 제작/Phase 4 통합 때 정리한다.
 - 좌표 원점 좌상단. pivot은 셀 내 좌표. 한 행 = 한 애니메이션, 좌→우 프레임, 셀 여백/간격 0px, 동일 셀 크기 및 기준점. 프레임 수는 아래 각 시트의 값.
 - 시트 프레임 시간은 별도 Resource로 관리. 애니메이션은 판정 시계를 결정하지 않는다.
 - ID/파일명/목적/크기/방향/프레임/시트/피벗/투명/팔레트/경로/상태는 아래 표와 공통 규격을 함께 적용한다.
 
 ## 캐릭터
-player는 **플레이어 후방 대각선 20도에서 상대를 바라보는 모습**, enemy는 그 플레이어를 마주 보는 모습. 방향을 단순 좌우 반전으로 대체하지 않는다. 셀 64×64px, 기준 픽셀 1px, 발 중심 pivot (32,58), 투명 배경, P1. 상태별 별도 1행 시트.
+player는 **플레이어 후방 대각선 20도에서 상대를 바라보는 모습**, enemy는 그 플레이어를 마주 보는 모습. 방향을 단순 좌우 반전으로 대체하지 않는다. 셀 128×128px, 기준 픽셀 1px, 발 중심 pivot 권장 (64,116), 투명 배경, P1. 상태별 별도 1행 시트.
 
 | 에셋 ID | 파일명 | 목적 | 프레임 | 시트 크기 | Godot 위치 | 상태 |
 |---|---|---|---:|---|---|---|
-| player_idle | player_idle.png | 플레이어 idle | 4 | 256×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_swing | player_swing.png | 플레이어 swing | 6 | 384×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_perfect_swing | player_perfect_swing.png | 플레이어 perfect_swing | 6 | 384×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_miss | player_miss.png | 플레이어 miss | 4 | 256×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_hit | player_hit.png | 플레이어 hit | 4 | 256×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_victory | player_victory.png | 플레이어 victory | 6 | 384×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_defeat | player_defeat.png | 플레이어 defeat | 6 | 384×64, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| enemy_idle | enemy_idle.png | 상대 idle | 4 | 256×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_swing | enemy_swing.png | 상대 swing | 6 | 384×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_perfect_swing | enemy_perfect_swing.png | 상대 perfect_swing | 6 | 384×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_miss | enemy_miss.png | 상대 miss | 4 | 256×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_hit | enemy_hit.png | 상대 hit | 4 | 256×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_victory | enemy_victory.png | 상대 victory | 6 | 384×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_defeat | enemy_defeat.png | 상대 defeat | 6 | 384×64, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| player_idle | player_idle.png | 플레이어 idle | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_swing | player_swing.png | 플레이어 swing | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_perfect_swing | player_perfect_swing.png | 플레이어 perfect_swing | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_miss | player_miss.png | 플레이어 miss | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_hit | player_hit.png | 플레이어 hit | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_victory | player_victory.png | 플레이어 victory | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_defeat | player_defeat.png | 플레이어 defeat | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| enemy_idle | enemy_idle.png | 상대 idle | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_swing | enemy_swing.png | 상대 swing | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_perfect_swing | enemy_perfect_swing.png | 상대 perfect_swing | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_miss | enemy_miss.png | 상대 miss | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_hit | enemy_hit.png | 상대 hit | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_victory | enemy_victory.png | 상대 victory | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_defeat | enemy_defeat.png | 상대 defeat | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
 
 Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤적/피격 효과는 별도 효과로 제작 가능. 모든 상태의 발 위치/실루엣 크기를 정렬하고 셀 밖으로 잘리지 않게 한다.
+
+128셀은 실제 소스 프레임 규격이다. 화면에서 캐릭터를 더 크게 보이는 배치는 별도 스케일/구도로 처리한다. 화면 밖 하체 크롭을 허용하더라도 소스 프레임에는 기준점과 필요한 동작을 일관되게 보관한다. 스윙 라켓이 셀 밖으로 잘리지 않도록 초기 포즈에서 여백을 검증하며 발 pivot은 개별 시트 제작 시 확인한다.
 
 ## 환경·UI·효과
 기준 픽셀 모두 1px, 팔레트 모두 P1 제안. 정적 에셋 방향은 화면 기준이며 카메라가 고정된 동일 구도를 사용한다.
@@ -52,10 +65,10 @@ Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤�
 | ui_result_marks | ui_result_marks.png | 승리/패배 표식 | 128×32 | 화면 정면 | 2/128×64, 행별 승리/패배 각 1 | (64,16) | 예 | assets/ui/ → ResultPanel | 미제작 |
 | ui_retry | ui_retry.png | 다시 시작 UI | 120×32 | 화면 정면 | 1/단일 | (60,16) | 예 | assets/ui/ → ResultPanel | 미제작 |
 
-판정/결과 문구의 언어와 폰트는 미정. 표식 이미지와 실제 텍스트를 분리하여 가독성·한글 지원을 확인한다. UI 버튼은 전투 중 별도 공격 버튼으로 사용하지 않는다. 배경은 화면 비율 변화 시 필수 내용을 가장자리에 두지 않으며 UI Safe Area를 대신하지 않는다. 테이블/네트의 정확한 크기와 피벗은 Phase 1 구도 확정 후 갱신한다.
+판정/결과 문구의 언어와 폰트는 미정. 표식 이미지와 실제 텍스트를 분리하여 가독성·한글 지원을 확인한다. UI 버튼은 전투 중 별도 공격 버튼으로 사용하지 않는다. 배경은 화면 비율 변화 시 필수 내용을 가장자리에 두지 않으며 UI Safe Area를 대신하지 않는다. 테이블/네트/UI의 정확한 크기와 피벗은 승인된 v3의 가까운 구도와 실제 투영/타격점에 맞춰 Phase 4 통합 전에 갱신한다. 현재 표의 크기는 초기 제안이다.
 
 ## 제작 요청 예시
-“투명 PNG, 64×64 셀 4개를 가로 1행으로 배치한 256×64 도트 스프라이트 시트. 플레이어 후방 대각선 20도, 상대 방향을 바라보는 Idle. 셀마다 발 중심 (32,58) 고정, 1px 픽셀 단위, P1 팔레트, 안티앨리어싱/글자/여백 없음. 모든 프레임의 실루엣 크기와 발 기준점을 동일하게 유지.”
+“승인된 focused-court-v3.png를 구도·색감·도트 밀도 기준으로 사용. 투명 PNG, 128×128 셀 4개를 가로 1행으로 배치한 512×128 도트 스프라이트 시트. 플레이어 후방 대각선 20도, 상대 방향을 바라보는 Idle. 셀마다 발 중심 권장 (64,116) 고정, 1px 픽셀 단위, P1 팔레트, 안티앨리어싱/글자/여백 없음. 모든 프레임의 실루엣 크기와 발 기준점을 동일하게 유지.”
 이 예시는 제작 가이드이며 이번 작업에서 이미지를 생성하지 않았다.
 
 ## 제공 후 통합 검증
@@ -80,9 +93,13 @@ Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤�
 플레이스홀더 공/그림자를 5개 데이터 궤적에서 재사용한다. 별도 방향별 캐릭터/공 에셋은 필요 없다. 빠른 스매시 및 강한 반격은 금색 표시, 로브/드라이브는 높이·바운드 차이로 구분한다. 최종 아트는 여전히 미제공이다. 15개 난이도/패턴 화면은 자동 렌더링으로 확인했으며 시각적 체감 검수는 USER_QA에 남긴다.
 
 
-## 시안 검토 진행
+## 시안 검토 이력 (아래 미승인 상태는 당시 기록)
 사용자는 세밀한 도트 밀도를 선호한다고 지정했다. 첫 전체 화면 시안을 docs/concepts/detailed-pixel-court-v1.png에 보관했다. 캐릭터/탁구대/배경의 디자인과 구도는 아직 미승인이며, 현재 64×64 셀 및 360×640 내부 해상도 제안은 세밀한 스타일과 함께 재검토해야 한다. 시안은 실제 게임 에셋/실행 화면이 아니고 게임에 통합하지 않았다.
 
 사용자가 128×128 캐릭터 기준의 화면 시안을 요청하여 docs/concepts/pixel-court-128-style-v2.png를 추가했다. 배경/옷 표현을 단순화한 디자인 검토용이며 정확한 128×128 스프라이트는 아직 없다. 기존 64×64 셀 권장값을 최종 규격으로 간주하지 않는다. 실제 캐릭터 셀과 내부 화면 해상도는 디자인 검토 후 함께 확정한다.
 
 사용자는 v2의 도트 스타일을 긍정적으로 평가했으며 배경이 과도하게 보여 집중이 어렵다고 피드백했다. docs/concepts/focused-court-v3.png에서 장식을 제거하고 선수/탁구대/공 중심의 가까운 고정 구도로 수정했다. 스타일 방향은 유지하며 v3 구도는 사용자 검토 대기이다. 최종 내부 해상도/128×128 프레임 및 라켓 접촉점은 통합 전에 검증한다. 게임 실행 코드에는 변경 없음.
+
+
+## 최종 방향 승인 기록
+사용자가 v3을 바탕으로 구도·색감·도트 밀도를 그래픽 제작 기준으로 지정했다. 위 승인 기준과 128셀 캐릭터 명세가 이전 64셀 제안 및 v3 검토 대기 기록을 대체한다. 개별 에셋 제작/통합/모바일 실기기 검증은 아직 완료하지 않았다.

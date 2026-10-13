@@ -1,6 +1,6 @@
 # 도트 그래픽 에셋 명세
 
-사용자가 **focused-court-v3.png의 구도·색감·도트 밀도를 공식 그래픽 제작 기준으로 승인**했다. 캐릭터는 128×128 셀 기준으로 제작한다. 최종 개별 PNG/애니메이션은 아직 미제작/미제공이다. 환경/UI 크기·프레임 수·세부 pivot/최종 RGB 팔레트는 통합 검토를 위한 권장안이다. 사용자가 직접 제작을 요청했으므로 이 작업에서 이미지 생성 도구로 원본을 제작할 수 있다. 제공받은 파일과 생성 원본 모두 Codex가 규격 확인과 통합을 담당한다.
+사용자가 **focused-court-v3.png의 구도·색감·도트 밀도를 공식 그래픽 제작 기준으로 승인**했다. 캐릭터는 128×128 셀 기준으로 제작한다. 플레이어/상대 Idle/Swing/Miss 6시트는 규격 검사 및 게임 연결 완료, 수동 검수 대기다. 나머지 PNG/애니메이션은 미완료다. 환경/UI 크기·프레임 수·세부 pivot/최종 RGB 팔레트는 통합 검토를 위한 권장안이다. 사용자가 직접 제작을 요청했으므로 이 작업에서 이미지 생성 도구로 원본을 제작할 수 있다. 제공받은 파일과 생성 원본 모두 Codex가 규격 확인과 통합을 담당한다.
 
 ## 승인된 그래픽 제작 기준
 기준 이미지: [경기 장면 집중 시안 v3](concepts/focused-court-v3.png). v1/v2는 비교 기록으로만 유지하며 최신 v3을 우선한다.
@@ -11,7 +11,7 @@
 - **배경:** 좁게 보이는 단순한 실내 벽/바닥. 조명 기구·포스터·시계·식물·벤치·관중 등 주의를 끄는 소품을 추가하지 않는다. 공/라켓/타격 위치를 배경 장식보다 우선한다.
 - **가독성:** 일반 공/금색 강한 공과 그림자, 네트 및 타격 위치가 구별되어야 한다. HP/판정은 공과 라켓을 가리지 않는다.
 
-승인 대상은 아트 방향이다. v3 PNG 전체를 실제 게임 배경이나 캐릭터 시트로 사용하지 않는다. 원본은 941×1672px로 약 9:16이며 정확한 128×128 셀 그리드는 아직 검증하지 않았다. 실제 셀/알파/프레임은 제작 후 별도 검사한다. 현재 실행 게임은 360×640/플레이스홀더를 유지하며, 128셀을 표시할 최종 내부 해상도·스케일·접촉점·환경/UI 크기는 통합 전에 함께 검토한다.
+승인 대상은 아트 방향이다. v3 PNG 전체를 실제 게임 배경이나 캐릭터 시트로 사용하지 않는다. 원본은 941×1672px로 약 9:16이며 정확한 128×128 셀 그리드는 아직 검증하지 않았다. 실제 셀/알파/프레임은 제작 후 별도 검사한다. 현재 실행 게임은 360×640에서 캐릭터만 실제 시트로 연결했고 환경/UI는 플레이스홀더를 유지하며, 128셀을 표시할 최종 내부 해상도·스케일·접촉점·환경/UI 크기는 통합 전에 함께 검토한다.
 
 ## 공통 규격
 - PNG, 일관된 원본 1px 도트 그리드. 정수 배율과 Nearest를 우선하며 정확한 표시 배율은 내부 해상도 검토 후 결정한다. 자동 보간/안티앨리어싱/블러 없음.
@@ -21,21 +21,21 @@
 - ID/파일명/목적/크기/방향/프레임/시트/피벗/투명/팔레트/경로/상태는 아래 표와 공통 규격을 함께 적용한다.
 
 ## 캐릭터
-player는 **플레이어 후방 대각선 20도에서 상대를 바라보는 모습**, enemy는 그 플레이어를 마주 보는 모습. 방향을 단순 좌우 반전으로 대체하지 않는다. 셀 128×128px, 기준 픽셀 1px, 발 중심 pivot 권장 (64,116), 투명 배경, P1. 상태별 별도 1행 시트.
+player는 **플레이어 후방 대각선 20도에서 상대를 바라보는 모습**, enemy는 그 플레이어를 마주 보는 모습. 방향을 단순 좌우 반전으로 대체하지 않는다. 셀 128×128px, 기준 픽셀 1px, 발 기준 pivot 플레이어 (48,116), 상대 (74,116), 투명 배경, P1. 상태별 별도 1행 시트.
 
 | 에셋 ID | 파일명 | 목적 | 프레임 | 시트 크기 | Godot 위치 | 상태 |
 |---|---|---|---:|---|---|---|
-| player_idle | player_idle.png | 플레이어 idle | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_swing | player_swing.png | 플레이어 swing | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_idle | player_idle.png | 플레이어 idle | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
+| player_swing | player_swing.png | 플레이어 swing | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
 | player_perfect_swing | player_perfect_swing.png | 플레이어 perfect_swing | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| player_miss | player_miss.png | 플레이어 miss | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
+| player_miss | player_miss.png | 플레이어 miss | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
 | player_hit | player_hit.png | 플레이어 hit | 4 | 512×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
 | player_victory | player_victory.png | 플레이어 victory | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
 | player_defeat | player_defeat.png | 플레이어 defeat | 6 | 768×128, 1행 | assets/characters/player/ → CharacterAnimator | 미제작 |
-| enemy_idle | enemy_idle.png | 상대 idle | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_swing | enemy_swing.png | 상대 swing | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_idle | enemy_idle.png | 상대 idle | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
+| enemy_swing | enemy_swing.png | 상대 swing | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
 | enemy_perfect_swing | enemy_perfect_swing.png | 상대 perfect_swing | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
-| enemy_miss | enemy_miss.png | 상대 miss | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
+| enemy_miss | enemy_miss.png | 상대 miss | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 규격 검사·연결 완료, 수동 검수 대기 |
 | enemy_hit | enemy_hit.png | 상대 hit | 4 | 512×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
 | enemy_victory | enemy_victory.png | 상대 victory | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
 | enemy_defeat | enemy_defeat.png | 상대 defeat | 6 | 768×128, 1행 | assets/characters/enemy/ → CharacterAnimator | 미제작 |
@@ -69,7 +69,7 @@ Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤�
 
 ## 제작 요청 예시
 “승인된 focused-court-v3.png를 구도·색감·도트 밀도 기준으로 사용. 투명 PNG, 128×128 셀 4개를 가로 1행으로 배치한 512×128 도트 스프라이트 시트. 플레이어 후방 대각선 20도, 상대 방향을 바라보는 Idle. 셀마다 발 중심 권장 (64,116) 고정, 1px 픽셀 단위, P1 팔레트, 안티앨리어싱/글자/여백 없음. 모든 프레임의 실루엣 크기와 발 기준점을 동일하게 유지.”
-이 예시는 제작 가이드이며 이번 작업에서 이미지를 생성하지 않았다.
+이 예시는 제작 가이드다. 실제 생성 원본은 별도 규격화한 뒤 연결하며 역할별 피벗은 위 값을 사용한다.
 
 ## 제공 후 통합 검증
 1. PNG 크기/알파, 셀 수/순서/간격, 피벗, 방향, 팔레트 확인.
@@ -78,7 +78,7 @@ Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤�
 4. 실제 씬에서 공 대비, 겹침/레이어 순서, 바운드, 스윙 정합성, 프레임 잘림 확인.
 5. 문제와 수정 요청을 문서화하고 제작 상태를 제공/검증/통합 완료로 갱신.
 
-오디오 파일 규격은 Phase 5에서 별도 정리한다. 현재 사운드/최종 이미지 통합 완료 항목은 없다.
+오디오 파일 규격은 Phase 5에서 별도 정리한다. 현재 사운드는 없으며 이미지 통합 범위는 캐릭터 Idle/Swing/Miss다.
 
 
 ## Phase 1 적용 기록
@@ -107,3 +107,11 @@ Idle/Swing/Miss 우선 요청, 나머지는 Phase 4~5 순차 통합. 라켓 궤�
 
 ## 캐릭터 원본 제작 시작
 승인된 v3 기준으로 assets/source/characters/player_reference.png와 enemy_reference.png를 생성했다. 실제 1254×1254 RGBA, 투명 영역 확인, 주요 실루엣의 여백 확인. 플레이어 외곽에 alpha=1 잔여 픽셀이 있어 최종 작업 때 정리한다. 상태는 **원본 생성/디자인 검토 대기**이며 위 128셀 Idle/Swing 등은 미제작 상태를 유지한다. 원본을 128셀 검증 완료/게임 통합 완료로 표시하지 않는다. source/characters/manifest.json에 크기와 검증 범위를 기록했다.
+
+
+## Phase 4 캐릭터 규격화·연결 결과
+기본 포즈와 애니메이션 생성 원본은 그대로 보존했다. 사용자가 Python 프레임 분리·Nearest 크기 조정·투명 경계 정리를 명시적으로 허용했다. 1774×887 원본에서 역할별 14개 실루엣을 추출하고 역할별 동일 축소율, 32색 팔레트, alpha 임계값 128을 적용했다. 결과는 128×128 셀, alpha 0/255, 발 하단 y116, 셀 잘림 없음이다.
+
+Idle 4fps 반복 / Swing 20fps 단발 / Miss 10fps 단발. Swing 접촉은 0기준 3번 프레임이며 접촉 좌표는 플레이어 (112,44), 상대 (31,54)다. SpriteFrames의 128×128 AtlasTexture를 CourtView에서 1배 Nearest로 그린다. 캐릭터별 고정 피벗과 접촉 좌표 차이를 이용해 기존 공 타격점에 배치한다. 모델 판정은 애니메이션에 의존하지 않는다. 공과 동일한 게임 시계를 사용하며 pause/restart에 맞춰 동작을 정지/초기화한다.
+
+[미리보기](../assets/characters/README.md) / [검증 기록](PHASE4_CHARACTER_VALIDATION.md). 이번 통합은 기존 임시 경기장의 캐릭터 교체다. v3의 최종 확대 구도·환경/탁구대/네트/공/UI 및 나머지 캐릭터 상태는 후속 작업이다. 자세의 자연스러움과 모바일 체감은 수동 검수 대기다. 앞선 Phase별 미완료 문구는 당시 기록이다.

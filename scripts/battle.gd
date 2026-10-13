@@ -86,6 +86,7 @@ func _notification(what: int) -> void:
 func _on_judged(grade: int, error_ms: float) -> void:
 	ui.show_judgement(grade, error_ms, float(clock.now_us()) / 1000000.0)
 	court.swing_at = float(clock.now_us()) / 1000000.0
+	court.animate_player(grade, court.swing_at, float(rally.contact_us) / 1000000.0)
 
 func _on_returned(_count: int) -> void:
 	court.contact_at = float(clock.now_us()) / 1000000.0
@@ -102,6 +103,7 @@ func _refresh() -> void:
 func _on_enemy_defended(grade: int) -> void:
 	ui.show_enemy_defense(grade, float(clock.now_us()) / 1000000.0)
 	court.enemy_swing_at = float(clock.now_us()) / 1000000.0
+	court.animate_enemy(grade, court.enemy_swing_at)
 
 func _on_damaged(side: int, amount: int, _remaining: int) -> void:
 	var now: float = float(clock.now_us()) / 1000000.0

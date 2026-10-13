@@ -1,0 +1,282 @@
+{
+  "role": "enemy",
+  "source": "assets/source/characters/enemy_animation_source.png",
+  "source_size": [
+    1774,
+    887
+  ],
+  "frame_size": [
+    128,
+    128
+  ],
+  "pivot": [
+    74,
+    116
+  ],
+  "contact_frame": 3,
+  "contact_point": [
+    31,
+    54
+  ],
+  "source_scale": 0.3438395415472779,
+  "palette_colors": 32,
+  "alpha_threshold": 128,
+  "animations": {
+    "idle": {
+      "count": 4,
+      "fps": 4,
+      "loop": true
+    },
+    "swing": {
+      "count": 6,
+      "fps": 20,
+      "loop": false
+    },
+    "miss": {
+      "count": 4,
+      "fps": 10,
+      "loop": false
+    }
+  },
+  "validation": "dimensions/binary alpha/full silhouettes/common foot baseline/unique frames verified; visual review pending",
+  "frames": [
+    {
+      "animation": "idle",
+      "index": 0,
+      "source_rect": [
+        72,
+        8,
+        281,
+        298
+      ],
+      "opaque_rect": [
+        38,
+        17,
+        110,
+        117
+      ],
+      "sha256": "99822e189806e9e222f05a5f0ee8bca65fa27780dd3b267f1bfb07df15d5726f"
+    },
+    {
+      "animation": "idle",
+      "index": 1,
+      "source_rect": [
+        375,
+        11,
+        583,
+        298
+      ],
+      "opaque_rect": [
+        38,
+        18,
+        110,
+        117
+      ],
+      "sha256": "b9bb9d12e6935d629c5512cc5f840d6abc76d68ee08a0f25a64a2364dc6a7d53"
+    },
+    {
+      "animation": "idle",
+      "index": 2,
+      "source_rect": [
+        659,
+        11,
+        869,
+        298
+      ],
+      "opaque_rect": [
+        38,
+        18,
+        110,
+        117
+      ],
+      "sha256": "f6d7c3ca5e79c0e5ec8eb8e89398908bdfb085b9f50401ac5a470d9aeaa9d3c5"
+    },
+    {
+      "animation": "idle",
+      "index": 3,
+      "source_rect": [
+        939,
+        8,
+        1150,
+        297
+      ],
+      "opaque_rect": [
+        38,
+        18,
+        111,
+        117
+      ],
+      "sha256": "d55c852a277cdefcfd16590c32af464257b6f0d5effc0046608a841e945b6c5a"
+    },
+    {
+      "animation": "swing",
+      "index": 0,
+      "source_rect": [
+        56,
+        308,
+        279,
+        595
+      ],
+      "opaque_rect": [
+        36,
+        18,
+        113,
+        117
+      ],
+      "sha256": "29dcb6d3d76c7e1dfaab9a8a2edb054f9ab0c280fdc610ad34aa1556da415fc6"
+    },
+    {
+      "animation": "swing",
+      "index": 1,
+      "source_rect": [
+        339,
+        310,
+        609,
+        595
+      ],
+      "opaque_rect": [
+        26,
+        19,
+        119,
+        117
+      ],
+      "sha256": "2db3691df722c856af849e414d8e3673984f7c9e2bae22bf73b87311a7b3587f"
+    },
+    {
+      "animation": "swing",
+      "index": 2,
+      "source_rect": [
+        643,
+        313,
+        881,
+        594
+      ],
+      "opaque_rect": [
+        33,
+        20,
+        115,
+        117
+      ],
+      "sha256": "1fb7522f888aa071d13f350f9f4d94ae11589baea4a60efaa6375d567d011a99"
+    },
+    {
+      "animation": "swing",
+      "index": 3,
+      "source_rect": [
+        913,
+        310,
+        1183,
+        595
+      ],
+      "opaque_rect": [
+        23,
+        19,
+        116,
+        117
+      ],
+      "sha256": "a99decd616035418656cf2d9e024d682d449898ce887cae133b9fa5de0e50df8"
+    },
+    {
+      "animation": "swing",
+      "index": 4,
+      "source_rect": [
+        1224,
+        314,
+        1456,
+        596
+      ],
+      "opaque_rect": [
+        35,
+        20,
+        115,
+        117
+      ],
+      "sha256": "e9256c969de776285c1f4c6e46ebbb957ae0aab93d93af3d436a3b2eaaa77efa"
+    },
+    {
+      "animation": "swing",
+      "index": 5,
+      "source_rect": [
+        1509,
+        310,
+        1726,
+        596
+      ],
+      "opaque_rect": [
+        37,
+        19,
+        112,
+        117
+      ],
+      "sha256": "5ad34c0b427e2e50da2aeb14c431fd627c55f324ecaaad4235d31e1b6b284c48"
+    },
+    {
+      "animation": "miss",
+      "index": 0,
+      "source_rect": [
+        25,
+        617,
+        375,
+        877
+      ],
+      "opaque_rect": [
+        4,
+        28,
+        124,
+        117
+      ],
+      "sha256": "eb1576bf3a78b8604dce7c38ff6debeee5bc2c7d077eb0581c58130fd9513f5a"
+    },
+    {
+      "animation": "miss",
+      "index": 1,
+      "source_rect": [
+        339,
+        614,
+        662,
+        877
+      ],
+      "opaque_rect": [
+        7,
+        27,
+        118,
+        117
+      ],
+      "sha256": "4f37b47322484389a9741acc7c97b1bbbb05014b8c3481f987f364d00a8c5faa"
+    },
+    {
+      "animation": "miss",
+      "index": 2,
+      "source_rect": [
+        696,
+        607,
+        879,
+        877
+      ],
+      "opaque_rect": [
+        43,
+        24,
+        106,
+        117
+      ],
+      "sha256": "566350d1cc591c3cfc2838c8e8a4bf461c1b6fd21981ab3b3d00acdb78c9f9a6"
+    },
+    {
+      "animation": "miss",
+      "index": 3,
+      "source_rect": [
+        943,
+        606,
+        1148,
+        877
+      ],
+      "opaque_rect": [
+        39,
+        24,
+        109,
+        117
+      ],
+      "sha256": "432b13b49df0f0cdeba33b9308b8a6797d5db6eb8895b960917176f737b17be1"
+    }
+  ]
+}

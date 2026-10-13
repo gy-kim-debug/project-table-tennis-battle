@@ -143,3 +143,8 @@ BattleManager.set_difficulty(profile,now) → 프로필 전달 → start로 새 
 UI: 상단 난이도, 좌측 패턴 이름, Pause 메뉴 OptionButton과 압박 수치. 메뉴 변경 안내가 전투 리셋을 명시한다. 테스트는 실제 PopupMenu를 터치로 열고 항목 focus/Enter로 선택해 GUI 신호 경로를 확인했다. 실제 iPhone 터치 popup/Safe Area는 미검증이다.
 
 tests/phase3_tests.gd: 압박의 이벤트/범위/중복/리셋, 모든 패턴/프로필/FPS의 경계 및 무입력, 궤적/바운드, 가중 선택과 RNG, 3난이도 전체 전투. tests/phase3_render_smoke.gd: 강제 패턴 fixture로 15개 화면 조합과 압박을 확인하고, 실제 EnemyAI로 승리/패배까지 진행한다. 테스트 시계 조작을 일반 게임 코드에 추가하지 않았다. 예전 Phase 2 화면 테스트도 패턴별 return_seconds를 읽도록 갱신했다.
+
+
+## Phase 4 캐릭터 출력
+CharacterAnimator(RefCounted)는 SpriteFrames/AtlasTexture와 manifest 피벗/접촉점을 읽고 게임 시간으로 프레임을 선택한다. 시작 시각/경과는 정수 마이크로초로 계산한다. Swing의 접촉 프레임을 논리 접촉 시각에 맞추지만 판정 결과를 변경하지 않는다. CourtView가 캐릭터별 animator를 소유하고 judged/enemy_defended 및 새 공 발사에 따라 Swing/Miss를 표시한다. 정지 시 같은 게임 시각을 받아 프레임을 유지하며 재시작은 Idle로 초기화한다. 에셋이 없으면 기존 도형을 사용한다.
+PNG는 실제 128셀, lossless/mipmaps 없음, 프로젝트 Nearest. 원본/문서 이미지의 import/export는 .gdignore로 제외한다. Python/Pillow/NumPy/SciPy는 에셋 재생성 도구의 개발 의존성이고 런타임 의존성이 아니다. 플레이어 HP는 발과 겹치지 않도록 label y503/bar y522로 옮겼다. 최종 환경/확대 구도는 미완료다.

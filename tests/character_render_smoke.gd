@@ -1,0 +1,88 @@
+extends SceneTree
+
+const Scene = preload("res://scenes/battle/battle.tscn")
+const Fixture = preload("res://tests/fixtures/defense_ai.gd")
+var battle: Node
+var output: String = "user://character-smoke"
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+func capture(name: String) -> void:
+	await RenderingServer.frame_post_draw
+	assert(root.get_texture().get_image().save_png(output.path_join(name + ".png")) == OK)
+	print("CAPTURE ", name)
+
+func at_time(now_us: int, advance: bool = true) -> void:
+	battle.clock.origin_us = Time.get_ticks_usec() - now_us
+	battle.clock.excluded_us = 0
+	if advance:
+		battle.combat.advance(now_us)
+	battle._refresh()
+	await process_frame
+
+func _run() -> void:
+	if DisplayServer.get_name() == "headless":
+		push_error("Character render test requires a display")
+		quit(1)
+		return
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if not args.is_empty():
+		output = args[0]
+	DirAccess.make_dir_recursive_absolute(output)
+	battle = Scene.instantiate()
+	root.add_child(battle)
+	await process_frame
+	battle.set_process(false)
+	battle.backgrounded = false
+	battle.manually_paused = false
+	battle._sync_pause()
+	var fixture: RefCounted = Fixture.new()
+	battle.combat.enemy = fixture
+	battle.rally.enemy = fixture
+	battle.restart()
+	assert(battle.court.player_actor.available() and battle.court.enemy_actor.available())
+	var start: int = battle.rally.phase_start_us
+	await at_time(start + 500000)
+	await capture("character-idle")
+	await at_time(start + 800000)
+	var target: int = battle.rally.target_us
+	await at_time(target - 120000)
+	battle.request_swing()
+	await at_time(target - 100000, false)
+	await capture("character-backswing")
+	await at_time(target)
+	assert(battle.court.player_actor.index_at(float(target) / 1000000) == 3)
+	var contact: Vector2 = battle.court._anchor(true) + battle.court.player_actor.racket_contact - battle.court.player_actor.pivot
+	assert(contact.distance_to(battle.court.player_contact) < 0.001)
+	await capture("character-contact")
+	await at_time(target + 100000)
+	await capture("character-follow-through")
+	await at_time(battle.rally.phase_start_us + 850000)
+	await capture("character-enemy-contact")
+	var miss_time: int = battle.rally.target_us + 180001
+	await at_time(miss_time)
+	await at_time(miss_time + 100000, false)
+	await capture("character-player-miss")
+	battle.toggle_pause()
+	battle._refresh()
+	var paused_index: int = battle.court.player_actor.index_at(float(battle.clock.now_us()) / 1000000)
+	await create_timer(0.2).timeout
+	battle._refresh()
+	assert(battle.court.player_actor.index_at(float(battle.clock.now_us()) / 1000000) == paused_index)
+	await capture("character-paused")
+	battle.restart()
+	assert(battle.court.player_actor.animation == &"idle" and battle.court.enemy_actor.animation == &"idle")
+	battle.toggle_pause()
+	fixture.grade = 3
+	start = battle.rally.phase_start_us
+	await at_time(start + 800000)
+	target = battle.rally.target_us
+	await at_time(target)
+	battle.request_swing()
+	await at_time(target)
+	await at_time(battle.rally.phase_start_us + 850000)
+	await at_time(battle.rally.phase_start_us + 100000, false)
+	await capture("character-enemy-miss")
+	print("CHARACTER RENDER PASS: idle/swing/contact/miss, pause freezes frames, restart clears actions")
+	quit()

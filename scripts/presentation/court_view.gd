@@ -1,8 +1,14 @@
 extends Node2D
 
+const Animator = preload("res://scripts/presentation/character_animator.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
 const INK = Color("0b1020")
 const LINE = Color("b9dfcb")
+var player_actor: RefCounted = Animator.new()
+var enemy_actor: RefCounted = Animator.new()
+var last_ball_id: int = -1
+var player_contact: Vector2
+var enemy_contact: Vector2
 var time_seconds: float = 0.0
 var ball: Vector3 = Vector3.ZERO
 var show_ball: bool = false
@@ -25,8 +31,17 @@ func project_point(point: Vector3, ground: bool = false) -> Vector2:
 	var half_width: float = lerpf(67.0, 125.0, point.y)
 	return Vector2(center.x + point.x * half_width, center.y + point.x * lerpf(10.0, 20.0, point.y) - (0.0 if ground else point.z))
 
+func _ready() -> void:
+	player_actor.configure("player")
+	enemy_actor.configure("enemy")
+
 func update_state(model: RefCounted, now_us: int) -> void:
 	time_seconds = float(now_us) / 1000000.0
+	player_contact = project_point(model.pattern.hit_point)
+	enemy_contact = project_point(model.pattern.start_point)
+	if model.ball_visible() and model.ball_id != last_ball_id:
+		last_ball_id = model.ball_id
+		enemy_actor.swing_at(float(model.phase_start_us) / 1000000.0)
 	show_ball = model.ball_visible()
 	strong_ball = model.incoming_strong and model.state != Rally.State.PLAYER_RETURN
 	waiting = not show_ball
@@ -41,6 +56,9 @@ func clear_feedback() -> void:
 	enemy_swing_at = -10.0
 	player_hit_at = -10.0
 	enemy_hit_at = -10.0
+	player_actor.reset()
+	enemy_actor.reset()
+	last_ball_id = -1
 
 func _draw() -> void:
 	draw_rect(Rect2(0, 0, 360, 640), Color("111b30"))
@@ -50,7 +68,7 @@ func _draw() -> void:
 	draw_rect(Rect2(16, 153, 328, 365), Color("1b2b40"), false, 2)
 	draw_colored_polygon(PackedVector2Array([Vector2(34, 436), Vector2(273, 478), Vector2(302, 494), Vector2(39, 457)]), Color("0b1424"))
 	# Opponent faces the player, fixed in place.
-	_character(Vector2(213, 200), false, time_seconds - enemy_swing_at < 0.22)
+	_character(_anchor(false), false, time_seconds - enemy_swing_at < 0.22)
 	var corners: PackedVector2Array = PackedVector2Array([
 		project_point(Vector3(-1, 0, 0)), project_point(Vector3(1, 0, 0)),
 		project_point(Vector3(1, 1, 0)), project_point(Vector3(-1, 1, 0))])
@@ -82,7 +100,7 @@ func _draw() -> void:
 	if time_seconds - bounce_at < 0.16:
 		var r: float = 3.0 + (time_seconds - bounce_at) * 45.0
 		draw_arc(bounce_position, r, 0, TAU, 12, Color("fff4d2"), 1)
-	_character(Vector2(100, 487), true, time_seconds - swing_at < 0.22)
+	_character(_anchor(true), true, time_seconds - swing_at < 0.22)
 	if show_ball:
 		var pos: Vector2 = project_point(ball).round()
 		var shadow: Vector2 = project_point(ball, true).round()
@@ -102,6 +120,11 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	if time_seconds - hit_at < 0.75:
 		var amount: int = player_damage if player else enemy_damage
 		draw_string(ThemeDB.fallback_font, feet + Vector2(32, -65 - (time_seconds - hit_at) * 18.0), "-%d" % amount, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("ef7869"))
+	var actor: RefCounted = player_actor if player else enemy_actor
+	if actor.available():
+		var tint: Color = Color("ffd166") if time_seconds - hit_at < 0.3 else Color.WHITE
+		draw_texture(actor.texture_at(time_seconds), (feet - actor.pivot).round(), tint)
+		return
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))
 	draw_rect(Rect2(feet + Vector2(5, -20), Vector2(11, 20)), Color("26344b"))
@@ -128,3 +151,21 @@ func show_damage(side: int, amount: int, now: float) -> void:
 	else:
 		enemy_hit_at = now
 		enemy_damage = amount
+
+func _anchor(player: bool) -> Vector2:
+	var actor: RefCounted = player_actor if player else enemy_actor
+	if actor.available():
+		return (player_contact if player else enemy_contact) - (actor.racket_contact - actor.pivot)
+	return Vector2(100, 487) if player else Vector2(213, 200)
+
+func animate_player(grade: int, now: float, contact_time: float) -> void:
+	if grade == 3:
+		player_actor.miss_at(now)
+	else:
+		player_actor.swing_at(contact_time)
+
+func animate_enemy(grade: int, now: float) -> void:
+	if grade == 3:
+		enemy_actor.miss_at(now)
+	else:
+		enemy_actor.swing_at(now)

@@ -29,5 +29,22 @@
       "frame_grid_validated": false,
       "animation_created": false
     }
-  ]
+  ],
+  "derived_animations": {
+    "sources": [
+      "player_animation_source.png",
+      "enemy_animation_source.png"
+    ],
+    "source_size": [
+      1774,
+      887
+    ],
+    "normalization_authorized": true,
+    "tool": "tools/assets/build_characters.py",
+    "runtime_manifests": [
+      "assets/characters/player/manifest.json",
+      "assets/characters/enemy/manifest.json"
+    ],
+    "state": "normalized_128_frames_integrated_manual_review_pending"
+  }
 }

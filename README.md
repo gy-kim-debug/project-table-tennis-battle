@@ -1,6 +1,6 @@
 # 원버튼 2D 도트 탁구 배틀
 
-Godot 4.6.3 stable / GDScript 기반 iPhone 세로형 타이밍 게임. 현재 **Phase 3 패턴·압박·난이도 전투 프로토타입**을 실행할 수 있다. 최종 아트/완성 연출/사운드/iOS 빌드는 아직 준비하지 않았다.
+Godot 4.6.3 stable / GDScript 기반 iPhone 세로형 타이밍 게임. 현재 **Phase 3 전투 + Phase 4 캐릭터 Idle/Swing/Miss**를 실행할 수 있다. 최종 아트/완성 연출/사운드/iOS 빌드는 아직 준비하지 않았다.
 
 ## 실행
 Godot 4.6.3에서 이 폴더의 `project.godot`를 Import하고 **F6 또는 F5**로 실행한다. 명령줄에서도 가능하다:
@@ -27,6 +27,7 @@ godot --path .
 순수 로직과 실제 씬 입력 경로의 자동 테스트 (디스플레이 불필요):
 
 ```sh
+godot --headless --editor --path . --import --quit
 godot --headless --path . --script tests/run_tests.gd
 ```
 
@@ -46,7 +47,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 
 화면 캡처는 각각 `user://phase1-smoke/`, `user://phase2-smoke/`에 저장된다. `-- /절대/출력/폴더`를 뒤에 붙이면 출력 폴더를 지정할 수 있다. `render_smoke.gd`는 자동 입력 전용 테스트이며 일반 플레이에 자동 입력이 포함되지 않는다.
 
-이번 환경: headless **2,507개 검사 통과**. Linux 가상 X11/OpenGL에서 승리·패배·HP/피격·터치 재시작을 확인했다. 이 전투 화면 검사에서는 테스트 시계를 제어하며 실제 경기 소요 시간을 측정하지 않는다. 사람의 직접 플레이와 iPhone 체감은 미검증이고, 사용자 요청에 따라 개발 후에 확인한다.
+이번 환경: headless **2,620개 검사 통과**. Linux 가상 X11/OpenGL에서 승리·패배·HP/피격·터치 재시작을 확인했다. 이 전투 화면 검사에서는 테스트 시계를 제어하며 실제 경기 소요 시간을 측정하지 않는다. 사람의 직접 플레이와 iPhone 체감은 미검증이고, 사용자 요청에 따라 개발 후에 확인한다.
 
 ## 데이터 및 구조
 - `resources/balance/timing.tres`: 판정창(ms), 터치 보정(ms), 서브 대기(s).
@@ -54,7 +55,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 - `resources/difficulty/*.tres`: AI 능력·도착 시간 배율·패턴 선택 가중치.
 - `resources/balance/battle.tres`: HP/피해/공격 성능/AI 점수·시드.
 - `scripts/core/`: 시각 출력 없는 판정·시계·패턴·랠리·HP 전투·AI·압박.
-- `scripts/presentation/`: 임시 경기장 드로잉 및 UI. `scripts/battle.gd`가 이벤트를 연결한다.
+- `scripts/presentation/`: 캐릭터 애니메이션, 임시 경기장 드로잉 및 UI. `scripts/battle.gd`가 이벤트를 연결한다.
 - iOS 빌드에는 macOS/Xcode, 동일 엔진 버전 Export Template, Apple 서명 및 실기기 준비가 필요하다. 아직 export preset/서명 설정은 없다.
 
 ## 공식 문서
@@ -78,4 +79,15 @@ AI 수비 점수는 난이도별 능력(55/65/75) + 난수[-45,45] − 공격 �
 압박은 Perfect +35, Good +15, Bad −15, 플레이어 Miss 초기화, AI Perfect/Good 수비 −25/−10. 상대 Miss/새 랠리 유지, 새 전투 초기화, 시간 감쇠 없음은 임시 정책이다. 값은 Resource에서 조정하며 최종 재미/경기 길이는 직접 플레이 후 검수한다.
 
 [Phase 3 검증](docs/PHASE3_VALIDATION.md) / [나중에 실행할 사용자 검수](docs/USER_QA.md).
-다음 단계는 ASSET_SPEC 기준의 제공 도트 그래픽 통합이다. 실제 PNG/스프라이트/사운드는 아직 없다.
+캐릭터 2종의 실제 128×128 Idle/Swing/Miss 총 28프레임을 연결했다. 탁구대/네트/공/배경/UI는 아직 임시 그래픽이며, 승인된 v3의 최종 확대 구도와 사운드는 후속 작업이다.
+
+
+## Phase 4 캐릭터
+[움직이는 캐릭터 미리보기](assets/characters/README.md) / [검증 기록](docs/PHASE4_CHARACTER_VALIDATION.md).
+최초 체크아웃은 위 editor import 명령으로 PNG를 가져온 뒤 headless 검사를 실행한다.
+
+```sh
+godot --path . --audio-driver Dummy --max-fps 60 --script tests/character_render_smoke.gd
+```
+
+캐릭터 원본을 다시 규격화하려면 개발 환경에 Pillow/NumPy/SciPy를 설치하고 `python tools/assets/build_characters.py`를 실행한다. 게임 실행에는 Python 의존성이 필요 없다. 원본은 보존하며 규격화 결과와 SpriteFrames를 재생성한다.

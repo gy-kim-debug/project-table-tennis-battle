@@ -101,10 +101,10 @@ func _ready() -> void:
 	enemy_hp_label = _label("100 / 100", Vector2(218, 74), Vector2(118, 16), 10, Color("fff4d2"))
 	enemy_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	enemy_hp_bar = _hp_bar(Vector2(22, 94), Color("ef7869"))
-	_label("PLAYER", Vector2(22, 491), Vector2(120, 16), 10, Color("54c7e6"))
-	player_hp_label = _label("100 / 100", Vector2(218, 491), Vector2(118, 16), 10, Color("fff4d2"))
+	_label("PLAYER", Vector2(22, 503), Vector2(120, 16), 10, Color("54c7e6"))
+	player_hp_label = _label("100 / 100", Vector2(218, 503), Vector2(118, 16), 10, Color("fff4d2"))
 	player_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	player_hp_bar = _hp_bar(Vector2(22, 511), Color("54c7e6"))
+	player_hp_bar = _hp_bar(Vector2(22, 522), Color("54c7e6"))
 	defense_label = _label("", Vector2(22, 160), Vector2(148, 20), 11, Color("b9dfcb"))
 	pattern_label = _label("BASIC RETURN", Vector2(22, 183), Vector2(148, 18), 10, Color("fff4d2"))
 	_build_result_panel()

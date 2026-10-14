@@ -5,8 +5,8 @@
 ## 1. 공통 화면 좌표
 
 - 고정 시점: 플레이어 등 뒤에서 약간 높은 2D 화면. 내부 캔버스 360×640, 세로 9:16, Nearest. 카메라 이동은 없다.
-- 탁구대 좌표: `x=-1` 왼쪽 가장자리, `x=1` 오른쪽 가장자리, `depth=0` 상대 쪽 먼 가장자리, `depth=1` 플레이어 쪽 가까운 가장자리. `height`는 화면에서 위로 올릴 픽셀 수다.
-- 투영의 **단일 기준값**은 [`assets/table/layout.json`](../assets/table/layout.json)이다. 실제 공·그림자·접촉점과 탁구대·네트의 윤곽은 모두 `CourtView.project_point()`를 사용한다. `court_scale`과 `court_offset`이 가까운 구도의 크기/위치를 조절한다. `tools/assets/build_court.py`의 탁구대·네트 PNG는 이전 래스터 시안이며 현재 런타임 윤곽에는 사용하지 않는다.
+- 탁구대 좌표: `x=-1`/`x=1`은 논리 좌우 가장자리이며, 현재 `mirror_view=true`에서는 각각 화면 오른쪽/왼쪽에 나타난다. `depth=0`은 상대 쪽 먼 가장자리, `depth=1`은 플레이어 쪽 가까운 가장자리다. `height`는 화면에서 위로 올릴 픽셀 수다.
+- 투영의 **단일 기준값**은 [`assets/table/layout.json`](../assets/table/layout.json)이다. 실제 공·그림자·접촉점과 탁구대·네트의 윤곽은 모두 `CourtView.project_point()`를 사용한다. `court_scale`과 `court_offset`이 가까운 구도의 크기/위치를 조절한다. `mirror_view=true`는 화면 가로 중심을 기준으로 투영과 캐릭터를 뒤집어 플레이어를 오른쪽 전경, 상대를 왼쪽 원경에 놓는다. UI 글자와 HUD는 반전하지 않는다. `tools/assets/build_court.py`의 탁구대·네트 PNG는 이전 래스터 시안이며 현재 런타임 윤곽에는 사용하지 않는다.
 - 양쪽 라켓의 논리 접촉점은 패턴 Resource의 `start_point`/`hit_point`다. 미술 작업에서 타격점을 옮겨 타이밍을 맞추지 않는다. 모든 패턴의 목표점은 동일한 플레이어 위치로 수렴한다.
 
 ## 2. 화면 가림 순서

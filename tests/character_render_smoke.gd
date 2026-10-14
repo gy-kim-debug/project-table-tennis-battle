@@ -47,7 +47,7 @@ func _run() -> void:
 	await capture("character-idle")
 	# The opaque table surface must hide the opponent's lower body. Previously
 	# a fixed y=208 crop left red sprite pixels on top of this surface.
-	var cover_point: Vector2i = Vector2i(250, 235)
+	var cover_point: Vector2i = Vector2i(110, 235)
 	var rendered: Color = root.get_texture().get_image().get_pixelv(cover_point)
 	assert(rendered.is_equal_approx(Color("168397")))
 	var front: SpriteFrames = SpriteFrames.new()
@@ -65,7 +65,7 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	var arm_scale: float = float(battle.court.layout["enemy_scale"])
 	var arm_top_left: Vector2 = (battle.court._anchor(false) - battle.court.enemy_actor.pivot * arm_scale).round()
-	var arm_sample: Vector2i = Vector2i((arm_top_left + Vector2(34, 83) * arm_scale).round())
+	var arm_sample: Vector2i = Vector2i((Vector2(2.0 * battle.court._anchor(false).x - arm_top_left.x, arm_top_left.y) + Vector2(-34, 83) * arm_scale).round())
 	assert(root.get_texture().get_image().get_pixelv(arm_sample).is_equal_approx(Color("54c7e6")))
 	battle.court.enemy_actor.front_frames = null
 	battle.court.queue_redraw()
@@ -78,17 +78,21 @@ func _run() -> void:
 	await at_time(target)
 	assert(battle.court.player_actor.index_at(float(target) / 1000000) == 3)
 	var scale_factor: float = float(battle.court.layout["player_scale"])
-	var contact: Vector2 = battle.court._anchor(true) + (battle.court.player_actor.racket_contact - battle.court.player_actor.pivot) * scale_factor
+	var player_offset: Vector2 = (battle.court.player_actor.racket_contact - battle.court.player_actor.pivot) * scale_factor
+	player_offset.x = -player_offset.x
+	var contact: Vector2 = battle.court._anchor(true) + player_offset
 	assert(contact.distance_to(battle.court.player_contact) < 0.001)
 	assert(battle.court.project_point(Vector3(-1, 0, 0)).y < battle.court.project_point(Vector3(-1, 1, 0)).y)
 	assert(battle.court.project_point(Vector3(-1, 1, 0)).x > 0.0)
-	assert(battle.court.player_contact.x > battle.court.project_point(Vector3(0, 1, 0)).x)
+	assert(battle.court.player_contact.x < battle.court.project_point(Vector3(0, 1, 0)).x)
 	await capture("character-contact")
 	await at_time(target + 100000)
 	await capture("character-follow-through")
 	await at_time(battle.rally.phase_start_us + 850000)
 	var enemy_scale: float = float(battle.court.layout["enemy_scale"])
-	var enemy_contact: Vector2 = battle.court._anchor(false) + (battle.court.enemy_actor.racket_contact - battle.court.enemy_actor.pivot) * enemy_scale
+	var enemy_offset: Vector2 = (battle.court.enemy_actor.racket_contact - battle.court.enemy_actor.pivot) * enemy_scale
+	enemy_offset.x = -enemy_offset.x
+	var enemy_contact: Vector2 = battle.court._anchor(false) + enemy_offset
 	assert(enemy_contact.distance_to(battle.court.enemy_contact) < 0.001)
 	await capture("character-enemy-contact")
 	var miss_time: int = battle.rally.target_us + 180001

@@ -12,5 +12,6 @@
   "player_scale": 3,
   "enemy_scale": 1.55,
   "court_scale": [0.75, 0.78],
-  "court_offset": [35, 75]
+  "court_offset": [35, 75],
+  "mirror_view": true
 }

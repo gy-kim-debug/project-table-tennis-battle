@@ -14,8 +14,12 @@ func run(check: Callable) -> void:
 			frames.add_frame(entry[0], ImageTexture.create_from_image(image))
 	var actor: RefCounted = Animator.new()
 	actor.frames = frames
+	check.call(not actor.has_front_layer(), "legacy whole-character frames work without a front-arm layer")
+	actor.front_frames = frames
+	check.call(actor.has_front_layer() and actor.front_texture_at(0.5) == frames.get_frame_texture(&"idle", 2), "optional front arm uses the same idle frame")
 	check.call(actor.index_at(0.0) == 0 and actor.index_at(0.5) == 2, "idle animation advances with game time")
 	actor.swing_at(1.0)
+	check.call(actor.front_texture_at(1.0) == frames.get_frame_texture(&"swing", 3), "front arm shares logical swing contact frame")
 	check.call(actor.index_at(0.85) == 0, "swing begins before contact")
 	check.call(actor.index_at(1.0) == 3, "swing contact pose matches logical contact time")
 	var frozen: int = actor.index_at(1.05)

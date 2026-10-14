@@ -48,7 +48,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 
 화면 캡처는 각각 `user://phase1-smoke/`, `user://phase2-smoke/`에 저장된다. `-- /절대/출력/폴더`를 뒤에 붙이면 출력 폴더를 지정할 수 있다. `render_smoke.gd`는 자동 입력 전용 테스트이며 일반 플레이에 자동 입력이 포함되지 않는다.
 
-이번 환경: headless **2,637개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도, 캐릭터와 탁구대 가림, Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
+이번 환경: headless **2,640개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도, 축소된 탁구대/캐릭터 레이어, Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
 
 ## 데이터 및 구조
 - `resources/balance/timing.tres`: 판정창(ms), 터치 보정(ms), 서브 대기(s).
@@ -81,7 +81,7 @@ AI 수비 점수는 난이도별 능력(55/65/75) + 난수[-45,45] − 공격 �
 압박은 Perfect +35, Good +15, Bad −15, 플레이어 Miss 초기화, AI Perfect/Good 수비 −25/−10. 상대 Miss/새 랠리 유지, 새 전투 초기화, 시간 감쇠 없음은 임시 정책이다. 값은 Resource에서 조정하며 최종 재미/경기 길이는 직접 플레이 후 검수한다.
 
 [Phase 3 검증](docs/PHASE3_VALIDATION.md) / [나중에 실행할 사용자 검수](docs/USER_QA.md).
-캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임에 이어 탁구대·네트·공·그림자·배경 에셋과 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다.
+캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임, 공·그림자·배경 PNG와 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다. 탁구대·네트는 공과 같은 투영 좌표에서 그려 크기를 조절한다.
 
 
 ## Phase 4 캐릭터
@@ -97,7 +97,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/character_render
 
 ## Phase 4 근접 경기장
 [게임 화면](docs/previews/rear-court-game.png) / [Idle 화면](docs/previews/rear-court-idle.png) / [경기장 검증](docs/PHASE4_COURT_VALIDATION.md).
-화면 구성 값은 `assets/table/layout.json`에서 관리하고 `python tools/assets/build_court.py`로 탁구대·네트·공·배경 PNG를 재생성한다. 개발용 Pillow만 필요하다. 게임 실행에는 Python이 필요 없다. 탁구대 화면 좌표와 공 궤적은 같은 구성 값을 읽는다.
+화면 구성 값은 `assets/table/layout.json`에서 관리한다. `court_scale`/`court_offset`으로 탁구대 크기를 바꾸면 공·네트·접촉점도 같은 투영을 따른다. 현재 탁구대·네트는 게임 안에서 그리며, 예전 PNG 제작 도구 `python tools/assets/build_court.py`의 출력은 참고용이다. 게임 실행에는 Python이 필요 없다. 새 몸/앞팔 레이어는 역할별 `body_back.tres`/`arm_front.tres`로 연결할 수 있다. 현재의 28프레임 원본은 아직 전신 시트다.
 
 ## Phase 5 프로토타입 연출
 

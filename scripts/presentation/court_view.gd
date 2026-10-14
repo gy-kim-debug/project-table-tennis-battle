@@ -3,8 +3,6 @@ extends Node2D
 const Animator = preload("res://scripts/presentation/character_animator.gd")
 const Rally = preload("res://scripts/core/rally_manager.gd")
 const BACKGROUND = preload("res://assets/backgrounds/background_main.png")
-const TABLE = preload("res://assets/table/table_main.png")
-const NET = preload("res://assets/table/table_net.png")
 const BALL = preload("res://assets/ball/ball_main.png")
 const SHADOW = preload("res://assets/ball/ball_shadow.png")
 const INK = Color("0b1020")
@@ -46,7 +44,16 @@ func project_point(point: Vector3, ground: bool = false) -> Vector2:
 	var center_y: float = lerpf(float(far[1]), float(near[1]), pow(depth, float(layout["depth_power"])))
 	var half_width: float = lerpf(float(layout["far_half_width"]), float(layout["near_half_width"]), depth)
 	var skew: float = lerpf(float(layout["far_skew"]), float(layout["near_skew"]), depth)
-	return Vector2(center_x + point.x * half_width, center_y + point.x * skew - (0.0 if ground else point.z))
+	var court_position: Vector2 = Vector2(center_x + point.x * half_width, center_y + point.x * skew - (0.0 if ground else point.z))
+	return _court_offset() + court_position * _court_scale()
+
+func _court_scale() -> Vector2:
+	var value: Array = layout["court_scale"]
+	return Vector2(float(value[0]), float(value[1]))
+
+func _court_offset() -> Vector2:
+	var value: Array = layout["court_offset"]
+	return Vector2(float(value[0]), float(value[1]))
 
 func _ready() -> void:
 	layout = JSON.parse_string(FileAccess.get_file_as_string("res://assets/table/layout.json"))
@@ -96,11 +103,12 @@ func _draw() -> void:
 	# The opponent stands behind the table. The table surface masks their lower
 	# body at its actual projected far edge; sprite sheets need no screen-y crop.
 	_character(_anchor(false), false, time_seconds - enemy_swing_at < 0.22)
-	draw_texture(TABLE, Vector2.ZERO)
+	_draw_table()
+	_character_front(_anchor(false), false)
 	if show_ball and ball.y < float(layout["net_depth"]):
 		_draw_trail()
 		_draw_ball()
-	draw_texture(NET, Vector2.ZERO)
+	_draw_net()
 	var hit: Vector2 = project_point(Vector3(0.15, 1, 16))
 	# A quiet fixed contact marker teaches timing without another control.
 	draw_arc(hit, 12, 0, TAU, 16, Color("b9dfcb"), 1, false)
@@ -110,6 +118,7 @@ func _draw() -> void:
 		var r: float = 3.0 + (time_seconds - bounce_at) * 45.0
 		draw_arc(bounce_position, r, 0, TAU, 12, Color("fff4d2"), 1)
 	_character(_anchor(true), true, time_seconds - swing_at < 0.22)
+	_character_front(_anchor(true), true)
 	if show_ball and ball.y >= float(layout["net_depth"]):
 		_draw_trail()
 		_draw_ball()
@@ -119,6 +128,52 @@ func _draw() -> void:
 	_draw_result()
 	# A quiet HUD strip lets the lower HP read over the foreground player.
 	draw_rect(Rect2(0, 530, 360, 110), Color(0.043, 0.063, 0.125, 0.78))
+
+func _court_point(x: float, depth: float) -> Vector2:
+	return project_point(Vector3(x, depth, 0)).round()
+
+func _quad(a: Vector2, b: Vector2, c: Vector2, d: Vector2, color: Color) -> void:
+	draw_colored_polygon(PackedVector2Array([a, b, c, d]), color)
+
+func _draw_table() -> void:
+	var far_left: Vector2 = _court_point(-1.0, 0.0)
+	var far_right: Vector2 = _court_point(1.0, 0.0)
+	var near_left: Vector2 = _court_point(-1.0, 1.0)
+	var near_right: Vector2 = _court_point(1.0, 1.0)
+	# Geometry and moving ball share the same projection. The opaque surface
+	# occludes the opponent exactly at the far edge, at any court scale.
+	_quad(far_left, far_right, near_right, near_left, Color("0b1322"))
+	_quad(near_left, near_right, near_right + Vector2(0, 17), near_left + Vector2(0, 17), Color("10283b"))
+	for x in [-0.93, 0.93]:
+		var leg: Vector2 = _court_point(x, 0.94)
+		draw_rect(Rect2(leg + Vector2(-3, 5), Vector2(6, 38)), Color("101a2c"))
+	_quad(far_left, far_right, near_right, near_left, Color("146d7a"))
+	_quad(far_left, far_right, _court_point(1.0, 0.5), _court_point(-1.0, 0.5), Color("168397"))
+	_quad(_court_point(-1.0, 0.5), _court_point(1.0, 0.5), near_right, near_left, Color("176f7e"))
+	_quad(_court_point(-0.72, 0.03), _court_point(-0.58, 0.03), _court_point(-0.66, 0.98), _court_point(-0.87, 0.98), Color("187d89"))
+	for edge in [[far_left, far_right], [far_right, near_right], [near_right, near_left], [near_left, far_left]]:
+		draw_line(edge[0], edge[1], Color("e4f3d7"), 2.0, false)
+	draw_line(_court_point(0.0, 0.0), _court_point(0.0, 1.0), Color("b8e8dc"), 2.0, false)
+	draw_line(near_left + Vector2(0, 3), near_right + Vector2(0, 3), Color("14364b"), 3.0, false)
+
+func _draw_net() -> void:
+	var depth: float = float(layout["net_depth"])
+	var left: Vector2 = _court_point(-1.04, depth)
+	var right: Vector2 = _court_point(1.04, depth)
+	var top_left: Vector2 = left - Vector2(0, 24)
+	var top_right: Vector2 = right - Vector2(0, 24)
+	_quad(top_left, top_right, right, left, Color("09263c"))
+	for index in range(25):
+		var t: float = float(index) / 24.0
+		var top: Vector2 = top_left.lerp(top_right, t).round()
+		var bottom: Vector2 = left.lerp(right, t).round()
+		draw_line(top + Vector2(0, 4), bottom - Vector2(0, 2), Color("388ba3"), 1.0, false)
+	for fraction in [0.28, 0.52, 0.76]:
+		draw_line(top_left.lerp(left, fraction).round(), top_right.lerp(right, fraction).round(), Color("388ba3"), 1.0, false)
+	draw_line(top_left, top_right, Color("e4f3d7"), 2.0, false)
+	draw_line(left, right, Color("081b2d"), 2.0, false)
+	draw_line(top_left - Vector2(0, 5), left + Vector2(0, 6), INK, 4.0, false)
+	draw_line(top_right - Vector2(0, 5), right + Vector2(0, 6), INK, 4.0, false)
 
 func _draw_trail() -> void:
 	for index in range(trail_points.size()):
@@ -176,17 +231,7 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 		color = Color("fff4d2")
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.available():
-		var tint: Color = Color("ff9380") if time_seconds - hit_at < 0.25 and int((time_seconds - hit_at) * 30.0) % 2 == 0 else Color.WHITE
-		if winner_side >= 0 and (0 if player else 1) != winner_side:
-			tint = Color(0.55, 0.62, 0.72)
-		if time_seconds - hit_at < 0.25:
-			feet.x += 4.0 if int((time_seconds - hit_at) * 30.0) % 2 == 0 else -4.0
-		var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
-		var top_left: Vector2 = (feet - actor.pivot * scale_factor).round()
-		if player:
-			draw_texture_rect(actor.texture_at(time_seconds), Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
-		else:
-			draw_texture_rect(actor.texture_at(time_seconds), Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
+		_draw_character_texture(feet, player, actor.texture_at(time_seconds))
 		return
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))
@@ -206,6 +251,25 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	draw_line(hand, hand + Vector2(9, -7), Color("ba9c74"), 3, false)
 	draw_rect(Rect2(hand + Vector2(6, -22), Vector2(17, 17)), INK)
 	draw_rect(Rect2(hand + Vector2(8, -20), Vector2(13, 13)), Color("ef7869") if player else Color("54c7e6"))
+
+func _character_front(feet: Vector2, player: bool) -> void:
+	var actor: RefCounted = player_actor if player else enemy_actor
+	if actor.has_front_layer():
+		_draw_character_texture(feet, player, actor.front_texture_at(time_seconds))
+
+func _draw_character_texture(feet: Vector2, player: bool, texture: Texture2D) -> void:
+	if texture == null:
+		return
+	var actor: RefCounted = player_actor if player else enemy_actor
+	var hit_at: float = player_hit_at if player else enemy_hit_at
+	var tint: Color = Color("ff9380") if time_seconds - hit_at < 0.25 and int((time_seconds - hit_at) * 30.0) % 2 == 0 else Color.WHITE
+	if winner_side >= 0 and (0 if player else 1) != winner_side:
+		tint = Color(0.55, 0.62, 0.72)
+	if time_seconds - hit_at < 0.25:
+		feet.x += 4.0 if int((time_seconds - hit_at) * 30.0) % 2 == 0 else -4.0
+	var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
+	var top_left: Vector2 = (feet - actor.pivot * scale_factor).round()
+	draw_texture_rect(texture, Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
 
 func show_damage(side: int, amount: int, now: float) -> void:
 	if side == 0:

@@ -2,7 +2,6 @@ extends SceneTree
 
 const Scene = preload("res://scenes/battle/battle.tscn")
 const Fixture = preload("res://tests/fixtures/defense_ai.gd")
-const TABLE = preload("res://assets/table/table_main.png")
 var battle: Node
 var output: String = "user://character-smoke"
 
@@ -48,10 +47,28 @@ func _run() -> void:
 	await capture("character-idle")
 	# The opaque table surface must hide the opponent's lower body. Previously
 	# a fixed y=208 crop left red sprite pixels on top of this surface.
-	var cover_point: Vector2i = Vector2i(250, 205)
+	var cover_point: Vector2i = Vector2i(250, 235)
 	var rendered: Color = root.get_texture().get_image().get_pixelv(cover_point)
-	var table_color: Color = TABLE.get_image().get_pixelv(cover_point)
-	assert(rendered.is_equal_approx(table_color))
+	assert(rendered.is_equal_approx(Color("168397")))
+	var front: SpriteFrames = SpriteFrames.new()
+	front.remove_animation(&"default")
+	for entry in [[&"idle", 4, 4.0], [&"swing", 6, 20.0], [&"miss", 4, 10.0]]:
+		front.add_animation(entry[0])
+		front.set_animation_speed(entry[0], entry[2])
+		for frame in range(entry[1]):
+			var layer_image: Image = Image.create_empty(128, 128, false, Image.FORMAT_RGBA8)
+			layer_image.fill(Color.TRANSPARENT)
+			layer_image.fill_rect(Rect2i(31, 80, 6, 6), Color("54c7e6"))
+			front.add_frame(entry[0], ImageTexture.create_from_image(layer_image))
+	battle.court.enemy_actor.front_frames = front
+	battle.court.queue_redraw()
+	await RenderingServer.frame_post_draw
+	var arm_scale: float = float(battle.court.layout["enemy_scale"])
+	var arm_top_left: Vector2 = (battle.court._anchor(false) - battle.court.enemy_actor.pivot * arm_scale).round()
+	var arm_sample: Vector2i = Vector2i((arm_top_left + Vector2(34, 83) * arm_scale).round())
+	assert(root.get_texture().get_image().get_pixelv(arm_sample).is_equal_approx(Color("54c7e6")))
+	battle.court.enemy_actor.front_frames = null
+	battle.court.queue_redraw()
 	await at_time(start + 800000)
 	var target: int = battle.rally.target_us
 	await at_time(target - 120000)
@@ -64,7 +81,7 @@ func _run() -> void:
 	var contact: Vector2 = battle.court._anchor(true) + (battle.court.player_actor.racket_contact - battle.court.player_actor.pivot) * scale_factor
 	assert(contact.distance_to(battle.court.player_contact) < 0.001)
 	assert(battle.court.project_point(Vector3(-1, 0, 0)).y < battle.court.project_point(Vector3(-1, 1, 0)).y)
-	assert(battle.court.project_point(Vector3(-1, 1, 0)).x < 0.0)
+	assert(battle.court.project_point(Vector3(-1, 1, 0)).x > 0.0)
 	assert(battle.court.player_contact.x > battle.court.project_point(Vector3(0, 1, 0)).x)
 	await capture("character-contact")
 	await at_time(target + 100000)

@@ -84,6 +84,8 @@
 Perfect: 강한 스윙·도트 충격파·공 잔상·짧은 히트 스톱·판정 텍스트·강한 타격음. 피격: HP 변화·캐릭터 반응·피해량·도트 효과·사운드. 마지막 공격 강조와 결과 화면.
 현재 구현: 빠른 스매시 패턴과 AI Perfect 반격이 강한 공이며, 플레이어 Perfect 리턴도 상대 Miss 시 강한 피해를 준다. 별도 게이지/필살기 버튼은 없다. Perfect 접촉 화면만 45ms 정지하며 판정용 게임 시계는 정지하지 않는다. 실제 체감은 사용자 검수 대상이다.
 
+구도 보정: 상대의 상체·양팔 스윙을 더 보이도록 탁구대 화면 크기를 줄이고 공의 원경 시작 높이를 높였다. 상대 몸은 상판 뒤, 향후 제작할 앞팔/라켓 레이어는 상판 앞에 그린다. 현재는 기존 전신 Swing 6프레임을 사용하며 관절별 분리형 그래픽은 아직 없다. 같은 목표 타이밍과 피해 규칙을 유지한다.
+
 ## 15. 전투 상태머신
 BATTLE_START → RALLY_START → ENEMY_ATTACK → PLAYER_TIMING → PLAYER_RETURN → ENEMY_DEFENSE.
 수비 성공이면 ENEMY_ATTACK으로 순환. 플레이어 또는 AI Miss이면 RALLY_RESULT. 생존 시 RALLY_START, HP 0이면 BATTLE_END.

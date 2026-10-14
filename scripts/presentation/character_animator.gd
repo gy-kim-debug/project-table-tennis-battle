@@ -2,6 +2,7 @@ extends RefCounted
 
 # Presentation-only: frame selection follows the same paused game clock as the ball.
 var frames: SpriteFrames
+var front_frames: SpriteFrames
 var pivot: Vector2 = Vector2(64, 116)
 var racket_contact: Vector2 = Vector2(112, 52)
 var contact_frame: int = 3
@@ -11,10 +12,27 @@ var last_now: float = 0.0
 var hold_last: bool = false
 
 func configure(role: String) -> bool:
-	var path: String = "res://assets/characters/%s/frames.tres" % role
-	if not ResourceLoader.exists(path):
+	var root: String = "res://assets/characters/%s/" % role
+	var whole_path: String = root + "frames.tres"
+	var back_path: String = root + "body_back.tres"
+	var front_path: String = root + "arm_front.tres"
+	if not ResourceLoader.exists(whole_path) and not ResourceLoader.exists(back_path):
 		return false
-	frames = load(path) as SpriteFrames
+	frames = load(whole_path) as SpriteFrames if ResourceLoader.exists(whole_path) else null
+	front_frames = null
+	if ResourceLoader.exists(back_path) and ResourceLoader.exists(front_path):
+		var fallback: SpriteFrames = frames
+		frames = load(back_path) as SpriteFrames
+		var candidate: SpriteFrames = load(front_path) as SpriteFrames
+		if _matching_layer(candidate):
+			front_frames = candidate
+		else:
+			frames = fallback
+			push_warning("Ignored incompatible front-arm frames: " + front_path)
+	elif ResourceLoader.exists(back_path):
+		push_warning("Ignored body-back frames without an arm-front layer: " + back_path)
+	elif ResourceLoader.exists(front_path):
+		push_warning("Ignored arm-front frames without a body-back layer: " + front_path)
 	var metadata_path: String = "res://assets/characters/%s/manifest.json" % role
 	if FileAccess.file_exists(metadata_path):
 		var metadata: Variant = JSON.parse_string(FileAccess.get_file_as_string(metadata_path))
@@ -28,6 +46,20 @@ func configure(role: String) -> bool:
 
 func available() -> bool:
 	return frames != null and frames.has_animation(&"idle") and frames.has_animation(&"swing") and frames.has_animation(&"miss")
+
+func _matching_layer(candidate: SpriteFrames) -> bool:
+	if candidate == null or not available():
+		return false
+	for name in [&"idle", &"swing", &"miss"]:
+		if not candidate.has_animation(name) or candidate.get_frame_count(name) != frames.get_frame_count(name) or not is_equal_approx(candidate.get_animation_speed(name), frames.get_animation_speed(name)) or candidate.get_animation_loop(name) != frames.get_animation_loop(name):
+			return false
+		for frame in range(frames.get_frame_count(name)):
+			if not is_equal_approx(candidate.get_frame_duration(name, frame), frames.get_frame_duration(name, frame)):
+				return false
+	return true
+
+func has_front_layer() -> bool:
+	return front_frames != null
 
 func reset() -> void:
 	animation = &"idle"
@@ -78,3 +110,9 @@ func texture_at(now: float) -> Texture2D:
 		return null
 	var index: int = index_at(now)
 	return frames.get_frame_texture(animation, index)
+
+func front_texture_at(now: float) -> Texture2D:
+	if not has_front_layer():
+		return null
+	var index: int = index_at(now)
+	return front_frames.get_frame_texture(animation, index)

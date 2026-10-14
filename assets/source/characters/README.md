@@ -12,3 +12,5 @@
 
 
 `player_animation_source.png`와 `enemy_animation_source.png`는 1774×887 RGBA 생성 원본이다. 원본은 정확한 128셀 그리드가 아니다. 사용자 허용에 따라 Python으로 원본을 보존하면서 실루엣 분리·Nearest 크기 조정·투명 경계를 정리해 [실제 128셀 애니메이션](../../characters/README.md)을 만들었다. 기본 참조 이미지와 애니메이션 생성 원본은 Godot import/export에서 제외한다 (`assets/source/.gdignore`).
+
+`player_drive_source.png`는 오른손 포핸드 드라이브 Swing 6프레임의 생성 원본이다. `tools/assets/build_player_drive.py`가 원본을 보존한 채 정확한 128×128 프레임으로 규격화한다. 현재 게임의 플레이어 Swing에 연결되어 있으며 실제 모바일 동작 검수는 남아 있다.

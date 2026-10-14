@@ -105,3 +105,5 @@ def build(role):
 
 if __name__=='__main__':
  for character in ['player','enemy']:build(character)
+ from build_player_drive import build as build_player_drive
+ build_player_drive()

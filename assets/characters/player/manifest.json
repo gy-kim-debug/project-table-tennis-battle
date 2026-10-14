@@ -15,8 +15,8 @@
   ],
   "contact_frame": 3,
   "contact_point": [
-    112,
-    44
+    114,
+    34
   ],
   "source_scale": 0.3715170278637771,
   "palette_colors": 32,
@@ -38,7 +38,7 @@
       "loop": false
     }
   },
-  "validation": "dimensions/binary alpha/full silhouettes/common foot baseline/unique frames verified; visual review pending",
+  "validation": "six drive frames / binary alpha / stable foot pivot / paddle contact verified; visual review pending",
   "frames": [
     {
       "animation": "idle",
@@ -112,103 +112,103 @@
       "animation": "swing",
       "index": 0,
       "source_rect": [
-        53,
-        310,
-        278,
-        590
+        25,
+        212,
+        303,
+        553
       ],
       "opaque_rect": [
-        10,
-        13,
-        94,
+        5,
+        12,
+        91,
         117
       ],
-      "sha256": "2b68288c98c8678263408ac7f0338363395b923cf8781da67018afd3402bc517"
+      "sha256": "b68dbf8ca0617927469d739dfa1199ce680f225fc61f7783f694982bc03eafaa"
     },
     {
       "animation": "swing",
       "index": 1,
       "source_rect": [
-        331,
-        306,
-        591,
-        590
+        379,
+        231,
+        679,
+        553
       ],
       "opaque_rect": [
-        8,
-        11,
-        105,
+        4,
+        18,
+        97,
         117
       ],
-      "sha256": "887ab8a8315d82f82e8f5e64572a82553e7188232b281080d27893f29aebcc9a"
+      "sha256": "c88cc7f6215a797b46fc2a25bbaae0f63c18467b04945ab963906cd560635b52"
     },
     {
       "animation": "swing",
       "index": 2,
       "source_rect": [
-        626,
-        314,
-        866,
-        590
+        735,
+        209,
+        1073,
+        552
       ],
       "opaque_rect": [
-        7,
-        14,
-        96,
+        3,
+        11,
+        107,
         117
       ],
-      "sha256": "9a4a4f904ec61bea7efe30d5d92f6f6e4937bf35c69dbdd5573039de90c138f9"
+      "sha256": "c7122db81f582e792c2cfd3da95fecbfd078704ff25d6748e3eeb2d6e5e08c14"
     },
     {
       "animation": "swing",
       "index": 3,
       "source_rect": [
-        904,
-        321,
-        1205,
-        590
+        1116,
+        214,
+        1506,
+        552
       ],
       "opaque_rect": [
-        7,
-        17,
-        119,
+        2,
+        13,
+        122,
         117
       ],
-      "sha256": "0eb106398326a73f6ca074608134f5852fd6c5a5be14d46afcf3bfc73f4131ac"
+      "sha256": "2e174d5ad8a355484cb4eee425449f4cdb80ecb33c8594e847c050fda3178cc7"
     },
     {
       "animation": "swing",
       "index": 4,
       "source_rect": [
-        1207,
-        311,
-        1443,
-        590
+        1510,
+        201,
+        1802,
+        552
       ],
       "opaque_rect": [
-        4,
-        13,
-        92,
+        3,
+        9,
+        93,
         117
       ],
-      "sha256": "3c2c94b3fc4a9768af8d9d4f252cb1aca24730e1600855a5854c9be098bd43b4"
+      "sha256": "09b412049a1a358dd1f96e984d57daea5f290e0d84da63a2e63373d0f3e7a70d"
     },
     {
       "animation": "swing",
       "index": 5,
       "source_rect": [
-        1517,
-        311,
-        1748,
-        591
+        1845,
+        210,
+        2139,
+        552
       ],
       "opaque_rect": [
-        9,
-        13,
-        95,
+        5,
+        11,
+        96,
         117
       ],
-      "sha256": "7f3cb033031439e05bb3143ca9c4613d903f232975be82f3c0990094cb0cad01"
+      "sha256": "41fbd2924b72aaa5f639bbf37fa596f1fcb455e55b39fc787d7dcc60f76613f9"
     },
     {
       "animation": "miss",
@@ -278,5 +278,11 @@
       ],
       "sha256": "513be6c2d3b06536776d5996ed8b5f5a6f8913b26718fb6bf1b9d152fd21429e"
     }
-  ]
+  ],
+  "swing_source": "assets/source/characters/player_drive_source.png",
+  "swing_source_size": [
+    2170,
+    725
+  ],
+  "swing_source_scale": 0.30848329048843187
 }

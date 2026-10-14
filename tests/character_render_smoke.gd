@@ -85,6 +85,17 @@ func _run() -> void:
 	assert(battle.court.project_point(Vector3(-1, 1, 0)).x > 0.0)
 	assert(battle.court.player_contact.x > battle.court.project_point(Vector3(0, 1, 0)).x)
 	await capture("character-contact")
+	var impact_image: Image = root.get_texture().get_image()
+	var red_pixels: int = 0
+	for dy in range(-8, 9):
+		for dx in range(-8, 9):
+			var pixel: Color = impact_image.get_pixel(roundi(contact.x) + dx, roundi(contact.y) + dy)
+			if pixel.r > 0.5 and pixel.r > pixel.g * 1.5 and pixel.r > pixel.b * 1.4:
+				red_pixels += 1
+	assert(red_pixels > 10)
+	await at_time(target + 50000)
+	assert(battle.court.player_actor.index_at(float(target + 50000) / 1000000.0) == 4)
+	await capture("character-drive-follow-through")
 	await at_time(target + 100000)
 	await capture("character-follow-through")
 	await at_time(battle.rally.phase_start_us + 850000)

@@ -265,6 +265,8 @@ func _test_scene_battle() -> void:
 	battle._sync_pause()
 	var fixture: RefCounted = preload("res://tests/fixtures/defense_ai.gd").new()
 	check(battle.ui.enemy_hp_bar.size.y <= 8 and battle.ui.player_hp_bar.size.y <= 8, "HP bars fit reserved 8px rows")
+	var visual_ids: Array = [battle.court.layout["player_character"], battle.court.layout["enemy_character"]]
+	check(battle.court.player_actor.available() and battle.court.enemy_actor.available() and ResourceLoader.exists("res://assets/characters/%s/frames.tres" % visual_ids[0]) and ResourceLoader.exists("res://assets/characters/%s/frames.tres" % visual_ids[1]), "layout-selected character artwork loads")
 	var far_left: Vector2 = battle.court.project_point(Vector3(-1, 0, 0))
 	var far_right: Vector2 = battle.court.project_point(Vector3(1, 0, 0))
 	var near_left: Vector2 = battle.court.project_point(Vector3(-1, 1, 0))

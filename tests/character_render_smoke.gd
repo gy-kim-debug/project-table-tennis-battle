@@ -2,6 +2,7 @@ extends SceneTree
 
 const Scene = preload("res://scenes/battle/battle.tscn")
 const Fixture = preload("res://tests/fixtures/defense_ai.gd")
+const TABLE = preload("res://assets/table/table_main.png")
 var battle: Node
 var output: String = "user://character-smoke"
 
@@ -45,6 +46,12 @@ func _run() -> void:
 	var start: int = battle.rally.phase_start_us
 	await at_time(start + 500000)
 	await capture("character-idle")
+	# The opaque table surface must hide the opponent's lower body. Previously
+	# a fixed y=208 crop left red sprite pixels on top of this surface.
+	var cover_point: Vector2i = Vector2i(250, 205)
+	var rendered: Color = root.get_texture().get_image().get_pixelv(cover_point)
+	var table_color: Color = TABLE.get_image().get_pixelv(cover_point)
+	assert(rendered.is_equal_approx(table_color))
 	await at_time(start + 800000)
 	var target: int = battle.rally.target_us
 	await at_time(target - 120000)
@@ -91,5 +98,8 @@ func _run() -> void:
 	await at_time(battle.rally.phase_start_us + 850000)
 	await at_time(battle.rally.phase_start_us + 100000, false)
 	await capture("character-enemy-miss")
+	battle.queue_free()
+	await process_frame
+	await create_timer(0.6).timeout
 	print("CHARACTER RENDER PASS: idle/swing/contact/miss, pause freezes frames, restart clears actions")
 	quit()

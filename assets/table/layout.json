@@ -7,6 +7,8 @@
   "near_skew": -7,
   "depth_power": 1.65,
   "net_depth": 0.5,
+  "player_character": "player",
+  "enemy_character": "enemy",
   "player_scale": 3,
   "enemy_scale": 1.55
 }

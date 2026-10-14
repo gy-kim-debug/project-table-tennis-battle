@@ -48,7 +48,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 
 화면 캡처는 각각 `user://phase1-smoke/`, `user://phase2-smoke/`에 저장된다. `-- /절대/출력/폴더`를 뒤에 붙이면 출력 폴더를 지정할 수 있다. `render_smoke.gd`는 자동 입력 전용 테스트이며 일반 플레이에 자동 입력이 포함되지 않는다.
 
-이번 환경: headless **2,636개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도와 Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
+이번 환경: headless **2,637개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도, 캐릭터와 탁구대 가림, Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
 
 ## 데이터 및 구조
 - `resources/balance/timing.tres`: 판정창(ms), 터치 보정(ms), 서브 대기(s).
@@ -63,6 +63,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 - [원문](docs/MASTER_PROMPT.md) / [개발 규칙](AGENTS.md)
 - [기획](docs/GAME_DESIGN.md) / [기술 구조](docs/ARCHITECTURE.md)
 - [에셋 규격](docs/ASSET_SPEC.md) / [로드맵](docs/ROADMAP.md)
+- [새 그래픽 제작·교체 계약](docs/GRAPHICS_CONTRACT.md)
 - [환경](docs/ENVIRONMENT.md) / [Phase 1 계획 및 검수](docs/PHASE1_PLAN.md)
 - [Phase 0 검증](docs/VALIDATION.md) / [Phase 1 검증](docs/PHASE1_VALIDATION.md)
 

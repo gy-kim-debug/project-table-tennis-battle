@@ -50,8 +50,8 @@ func project_point(point: Vector3, ground: bool = false) -> Vector2:
 
 func _ready() -> void:
 	layout = JSON.parse_string(FileAccess.get_file_as_string("res://assets/table/layout.json"))
-	player_actor.configure("player")
-	enemy_actor.configure("enemy")
+	player_actor.configure(String(layout["player_character"]))
+	enemy_actor.configure(String(layout["enemy_character"]))
 
 func update_state(model: RefCounted, now_us: int) -> void:
 	var visual_us: int = freeze_from_us if now_us >= freeze_from_us and now_us < freeze_until_us else now_us
@@ -93,9 +93,10 @@ func clear_feedback() -> void:
 
 func _draw() -> void:
 	draw_texture(BACKGROUND, Vector2.ZERO)
-	draw_texture(TABLE, Vector2.ZERO)
-	# Only the opponent's upper body reaches in front of the far table edge.
+	# The opponent stands behind the table. The table surface masks their lower
+	# body at its actual projected far edge; sprite sheets need no screen-y crop.
 	_character(_anchor(false), false, time_seconds - enemy_swing_at < 0.22)
+	draw_texture(TABLE, Vector2.ZERO)
 	if show_ball and ball.y < float(layout["net_depth"]):
 		_draw_trail()
 		_draw_ball()
@@ -185,8 +186,7 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 		if player:
 			draw_texture_rect(actor.texture_at(time_seconds), Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
 		else:
-			var visible_height: float = clampf(208.0 - top_left.y, 0.0, 128.0 * scale_factor)
-			draw_texture_rect_region(actor.texture_at(time_seconds), Rect2(top_left, Vector2(128.0 * scale_factor, visible_height)), Rect2(Vector2.ZERO, Vector2(128.0, visible_height / scale_factor)), tint)
+			draw_texture_rect(actor.texture_at(time_seconds), Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
 		return
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))

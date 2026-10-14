@@ -275,7 +275,8 @@ func _test_scene_battle() -> void:
 	check(near_right.x >= 0 and near_right.x < 20 and near_left.x > 310 and near_left.x <= 340, "mirrored near table fits inside portrait width")
 	check(near_left.y > far_left.y + 200, "rear view keeps the smaller table readable")
 	check(battle.court.project_point(Vector3(0, 0.5, 0)).y > 240 and battle.court.project_point(Vector3(0, 0.5, 0)).y < 310, "net falls between players")
-	check(battle.court.player_contact.x < 160 and battle.court.player_contact.y > 400, "racket contact stays in right-player foreground")
+	check(battle.court.player_contact.x > 310 and battle.court.player_contact.y > 400, "right-handed racket contact stays by right-player foreground")
+	check(battle.court.enemy_contact.x < 80 and battle.court.enemy_contact.y < 220, "right-handed opponent contact stays on left background")
 	fixture.grade = Judge.Grade.MISS
 	battle.combat.enemy = fixture
 	battle.rally.enemy = fixture

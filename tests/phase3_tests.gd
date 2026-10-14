@@ -86,10 +86,10 @@ func _test_patterns() -> void:
 		durations[pattern.incoming_seconds] = true
 		check(pattern.is_valid(), "valid pattern " + pattern.pattern_id)
 		check(pattern.sample(0).is_equal_approx(pattern.start_point), "pattern start " + pattern.pattern_id)
-		check(pattern.sample(1).is_equal_approx(Vector3(0.15, 1, 16)), "every pattern reaches fixed racket")
+		check(pattern.sample(1).is_equal_approx(Vector3(-1, 1, 16)), "every pattern reaches fixed racket")
 		check(absf(pattern.sample(pattern.bounce_fraction).z) < 0.0001, "time-based bounce " + pattern.pattern_id)
 		for progress in [0.1, 0.35, 0.5, 0.75, 0.9, 1.1, 1.2]:
-			check(pattern.sample(progress).z >= 0 and absf(pattern.sample(progress).x) < 1, "trajectory remains reachable/readable")
+			check(pattern.sample(progress).z >= 0 and absf(pattern.sample(progress).x) <= (1.0 if progress <= 1.0 else 1.5), "trajectory remains reachable/readable")
 		for difficulty in Catalog.difficulties():
 			for fps in [30, 60, 120]:
 				for error in [-180000, -120000, -50000, 50000, 120000, 180000]:

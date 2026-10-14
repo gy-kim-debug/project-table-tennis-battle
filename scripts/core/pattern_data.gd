@@ -9,8 +9,8 @@ extends Resource
 @export_range(0.3, 5.0) var incoming_seconds: float = 1.25
 @export_range(0.3, 5.0) var return_seconds: float = 0.85
 @export_range(0.1, 0.9) var bounce_fraction: float = 0.62
-@export var start_point: Vector3 = Vector3(0.0, 0.0, 40.0)
-@export var hit_point: Vector3 = Vector3(0.15, 1.0, 16.0)
+@export var start_point: Vector3 = Vector3(1.0, 0.0, 40.0)
+@export var hit_point: Vector3 = Vector3(-1.0, 1.0, 16.0)
 @export var arc_height: float = 34.0
 
 # Logical coordinates: x across table [-1, 1], z depth [0, 1], h pixels high.

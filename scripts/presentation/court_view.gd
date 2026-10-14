@@ -115,7 +115,7 @@ func _draw() -> void:
 		_draw_trail()
 		_draw_ball()
 	_draw_net()
-	var hit: Vector2 = project_point(Vector3(0.15, 1, 16))
+	var hit: Vector2 = player_contact
 	# A quiet fixed contact marker teaches timing without another control.
 	draw_arc(hit, 12, 0, TAU, 16, Color("b9dfcb"), 1, false)
 	draw_line(hit + Vector2(-17, 0), hit + Vector2(-12, 0), LINE, 1)
@@ -206,8 +206,7 @@ func _draw_damage(player: bool) -> void:
 	var age: float = time_seconds - started
 	if age < 0.0 or age >= 0.45:
 		return
-	var side: float = -1.0 if _mirror_view() else 1.0
-	var center: Vector2 = (player_contact + Vector2(-25 * side, -90)) if player else (enemy_contact + Vector2(105 * side, -30))
+	var center: Vector2 = (player_contact + Vector2(-25, -90)) if player else (enemy_contact + Vector2(105, -30))
 	var amount: int = player_damage if player else enemy_damage
 	draw_string(ThemeDB.fallback_font, center + Vector2(0, -age * 38.0), "-%d" % amount, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("ff8a73"))
 	for direction in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
@@ -240,8 +239,6 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	if actor.available():
 		_draw_character_texture(feet, player, actor.texture_at(time_seconds))
 		return
-	if _mirror_view():
-		draw_set_transform(Vector2(feet.x * 2.0, 0), 0, Vector2(-1, 1))
 	draw_rect(Rect2(feet + Vector2(-19, -2), Vector2(38, 6)), INK)
 	draw_rect(Rect2(feet + Vector2(-14, -20), Vector2(11, 20)), Color("26344b"))
 	draw_rect(Rect2(feet + Vector2(5, -20), Vector2(11, 20)), Color("26344b"))
@@ -260,8 +257,6 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 	draw_line(hand, hand + Vector2(9, -7), Color("ba9c74"), 3, false)
 	draw_rect(Rect2(hand + Vector2(6, -22), Vector2(17, 17)), INK)
 	draw_rect(Rect2(hand + Vector2(8, -20), Vector2(13, 13)), Color("ef7869") if player else Color("54c7e6"))
-	if _mirror_view():
-		draw_set_transform(Vector2.ZERO)
 
 func _character_front(feet: Vector2, player: bool) -> void:
 	var actor: RefCounted = player_actor if player else enemy_actor
@@ -280,11 +275,7 @@ func _draw_character_texture(feet: Vector2, player: bool, texture: Texture2D) ->
 		feet.x += 4.0 if int((time_seconds - hit_at) * 30.0) % 2 == 0 else -4.0
 	var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
 	var top_left: Vector2 = (feet - actor.pivot * scale_factor).round()
-	if _mirror_view():
-		draw_set_transform(Vector2(feet.x * 2.0, 0), 0, Vector2(-1, 1))
 	draw_texture_rect(texture, Rect2(top_left, Vector2.ONE * 128.0 * scale_factor), false, tint)
-	if _mirror_view():
-		draw_set_transform(Vector2.ZERO)
 
 func show_damage(side: int, amount: int, now: float) -> void:
 	if side == 0:
@@ -321,14 +312,8 @@ func _anchor(player: bool) -> Vector2:
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.available():
 		var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
-		var offset: Vector2 = (actor.racket_contact - actor.pivot) * scale_factor
-		if _mirror_view():
-			offset.x = -offset.x
-		return (player_contact if player else enemy_contact) - offset
-	var fallback: Vector2 = Vector2(100, 487) if player else Vector2(213, 200)
-	if _mirror_view():
-		fallback.x = 360.0 - fallback.x
-	return fallback
+		return (player_contact if player else enemy_contact) - (actor.racket_contact - actor.pivot) * scale_factor
+	return Vector2(225, 487) if player else Vector2(125, 200)
 
 func animate_player(grade: int, now: float, contact_time: float) -> void:
 	if grade == 3:

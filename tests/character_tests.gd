@@ -54,6 +54,7 @@ func run(check: Callable) -> void:
 		var actual: RefCounted = Animator.new()
 		check.call(actual.configure(role), "actual character library loads " + role)
 		check.call(actual.has_racket_layer(), "selected racket artwork loads " + role)
+		check.call(actual.has_rig(), "joint-owned arm layers load " + role)
 		check.call(actual.contact_frame == 3, "actual contact frame metadata")
 		for entry in [["idle", 4], ["swing", 6], ["miss", 4]]:
 			check.call(actual.frames.get_frame_count(entry[0]) == entry[1], "actual frame count " + role + entry[0])
@@ -73,6 +74,11 @@ func run(check: Callable) -> void:
 				check.call(actual.racket_frames.get_frame_count(entry[0]) == entry[1], "racket frame count follows character action")
 		actual.swing_at(1.0)
 		check.call(actual.index_at(1.0) == 3, "actual animation contacts on time")
+		var pose: Dictionary = actual.rig_pose_at(1.0)
+		check.call(pose.has("shoulder") and pose.has("elbow") and pose.has("wrist"), "joint pivots exist at contact " + role)
+		check.call((pose["angles"] as Vector3).is_zero_approx(), "contact pose keeps racket aligned with the logical hit point " + role)
+		check.call(actual.rig_texture_at("forearm", 1.0) != null, "forearm art exists at contact " + role)
+		check.call(not (actual.rig_pose_at(0.85)["angles"] as Vector3).is_zero_approx(), "pre-contact arm joints rotate " + role)
 
 	for contact in [2.050051, 7.012345, 120.123456]:
 		actor.swing_at(contact)

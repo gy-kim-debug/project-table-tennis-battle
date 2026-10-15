@@ -4,6 +4,8 @@ extends RefCounted
 var frames: SpriteFrames
 var front_frames: SpriteFrames
 var racket_frames: SpriteFrames
+var rig_layers: Dictionary = {}
+var rig_data: Dictionary = {}
 var pivot: Vector2 = Vector2(64, 116)
 var racket_contact: Vector2 = Vector2(112, 52)
 var contact_frame: int = 3
@@ -15,6 +17,8 @@ var hold_last: bool = false
 
 func configure(role: String) -> bool:
 	swing_variants.clear()
+	rig_layers.clear()
+	rig_data.clear()
 	var root: String = "res://assets/characters/%s/" % role
 	var whole_path: String = root + "frames.tres"
 	var back_path: String = root + "body_back.tres"
@@ -56,6 +60,23 @@ func configure(role: String) -> bool:
 					racket_frames = candidate
 				else:
 					push_warning("Ignored incompatible racket frames: " + racket_path)
+	var rig_path: String = root + "rig.json"
+	if FileAccess.file_exists(rig_path):
+		var candidate_data: Variant = JSON.parse_string(FileAccess.get_file_as_string(rig_path))
+		if candidate_data is Dictionary and candidate_data.get("schema_version") == 1:
+			var complete: bool = true
+			for part in ["torso", "upper_arm", "forearm", "hand"]:
+				var part_path: String = root + part + ".tres"
+				var part_frames: SpriteFrames = load(part_path) as SpriteFrames if ResourceLoader.exists(part_path) else null
+				if not _matching_layer(part_frames):
+					complete = false
+					break
+				rig_layers[part] = part_frames
+			if complete:
+				rig_data = candidate_data
+			else:
+				rig_layers.clear()
+				push_warning("Ignored incomplete joint rig: " + rig_path)
 	return available()
 
 func available() -> bool:
@@ -77,6 +98,30 @@ func has_front_layer() -> bool:
 
 func has_racket_layer() -> bool:
 	return racket_frames != null
+
+func has_rig() -> bool:
+	return not rig_data.is_empty() and rig_layers.size() == 4
+
+func rig_pose_at(now: float) -> Dictionary:
+	if not has_rig():
+		return {}
+	var index: int = index_at(now)
+	var joints: Dictionary = rig_data["joints"]
+	if not joints.has(String(animation)) or index >= joints[String(animation)].size():
+		return {}
+	var entry: Dictionary = joints[String(animation)][index]
+	var offsets: Array = rig_data.get("pose_offsets_deg", {}).get(String(animation), [])
+	var degrees: Array = offsets[index] if index < offsets.size() else [0, 0, 0]
+	return {"shoulder": Vector2(entry["shoulder"][0], entry["shoulder"][1]),
+		"elbow": Vector2(entry["elbow"][0], entry["elbow"][1]),
+		"wrist": Vector2(entry["wrist"][0], entry["wrist"][1]),
+		"angles": Vector3(deg_to_rad(float(degrees[0])), deg_to_rad(float(degrees[1])), deg_to_rad(float(degrees[2])))}
+
+func rig_texture_at(part: String, now: float) -> Texture2D:
+	if not has_rig() or not rig_layers.has(part):
+		return null
+	var index: int = index_at(now)
+	return (rig_layers[part] as SpriteFrames).get_frame_texture(animation, index)
 
 func reset() -> void:
 	animation = &"idle"
@@ -130,7 +175,7 @@ func texture_at(now: float) -> Texture2D:
 	if not available():
 		return null
 	var index: int = index_at(now)
-	return frames.get_frame_texture(animation, index)
+	return (rig_layers["torso"] as SpriteFrames).get_frame_texture(animation, index) if has_rig() else frames.get_frame_texture(animation, index)
 
 func front_texture_at(now: float) -> Texture2D:
 	if not has_front_layer():

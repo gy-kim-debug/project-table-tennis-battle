@@ -13,8 +13,8 @@
 
 | 종류 | 현재 기준 | 반드시 유지할 계약 |
 |---|---|---|
-| 선수·상대 | `assets/characters/player/`, `enemy/` | 역할별 128×128 이진 알파 셀, Idle 4·Swing 6·Miss 4, 발 y=116, 접촉 픽셀, `body_back.tres`와 선택적 `arm_front.tres` |
-| 라켓 면·손잡이 일부 | `assets/rackets/player_default/`, `enemy_default/` | 캐릭터와 동일한 셀·애니메이션·FPS·임팩트 프레임. `manifest.json`의 `racket_id`로 선택. 쥔 손과 접합 픽셀은 캐릭터 몸 시트에 남음 |
+| 선수·상대 | `assets/characters/player/`, `enemy/` | 역할별 128×128 이진 알파 셀, Idle 4·Swing 6·Miss 4, 발 y=116, 접촉 픽셀. 실행 시 `torso`·`upper_arm`·`forearm`·`hand` 시트와 `rig.json`의 어깨·팔꿈치·손목 관절 사용. `body_back.tres`는 폴백 |
+| 라켓 면·손잡이 일부 | `assets/rackets/player_default/`, `enemy_default/` | 캐릭터와 동일한 셀·애니메이션·FPS·임팩트 프레임. `manifest.json`의 `racket_id`로 선택. 손목 관절 회전을 따라감 |
 | 탁구대·네트 | `assets/table/table_main.png`, `table_net.png` | 각각 360×640 투명 PNG, `layout.json` 투영과 일치, 공 앞뒤 가림 보존 |
 | 배경·공·그림자·효과 | `assets/visuals/active.json` | 선언한 PNG 크기와 프레임·알파, 중심 기준 좌표 |
 | UI·폰트 | `assets/ui/active.json` | 패널·버튼·HP 그래픽과 프로젝트 글꼴. 값·판정·버튼 글자는 런타임 텍스트, iOS Safe Area 배치는 런타임 Control |

@@ -151,7 +151,7 @@ PNG는 실제 128셀, lossless/mipmaps 없음, 프로젝트 Nearest. 원본/문�
 
 
 ## Phase 4 근접 경기장 투영
-`assets/table/layout.json`을 화면 투영의 기준으로 둔다. CourtView는 JSON을 읽어 논리 x·깊이·높이를 화면 x/y로 바꾸고, `court_scale`/`court_offset`으로 화면상의 크기와 위치를 조절한다. 깊이에 1.65 지수를 적용해 등 뒤에서 약간 내려다보는 근접 원근을 만든다. 공·그림자·라켓 접촉점은 같은 투영을 사용한다. 탁구대·네트 PNG는 `tools/assets/build_standard_assets.py`가 그 투영에서 생성하고 CourtView가 로드한다. 레이어는 배경→상대 몸→탁구대→상대 앞팔/라켓→원경 공→네트→플레이어 몸/앞팔/라켓→근경 공→효과→HUD다. 탁구대 상판이 상대의 하반신을 가린다. 선택적 앞팔과 독립 라켓 SpriteFrames는 몸과 같은 프레임·속도로 그린다. 순수 랠리/전투 모델의 판정창·시계는 변경하지 않는다. 신규 그래픽의 교체 조건은 [그래픽 계약](GRAPHICS_CONTRACT.md)에 기록한다.
+`assets/table/layout.json`을 화면 투영의 기준으로 둔다. CourtView는 JSON을 읽어 논리 x·깊이·높이를 화면 x/y로 바꾸고, `court_scale`/`court_offset`으로 화면상의 크기와 위치를 조절한다. 깊이에 1.65 지수를 적용해 등 뒤에서 약간 내려다보는 근접 원근을 만든다. 공·그림자·라켓 접촉점은 같은 투영을 사용한다. 탁구대·네트 PNG는 `tools/assets/build_standard_assets.py`가 그 투영에서 생성하고 CourtView가 로드한다. 레이어는 배경→상대 몸통→탁구대→상대 위팔/아래팔/손/라켓→원경 공→네트→플레이어 몸통/위팔/아래팔/손/라켓→근경 공→효과→HUD다. 탁구대 상판이 상대의 하반신을 가린다. `CharacterAnimator`가 캐릭터별 `rig.json`의 어깨·팔꿈치·손목 좌표를 게임 시각의 프레임에 맞춰 제공하며 CourtView가 상위 관절의 회전을 아래 관절·라켓에 전파한다. 각 SpriteFrames는 동일한 프레임·속도를 사용한다. 순수 랠리/전투 모델의 판정창·시계는 변경하지 않는다. 신규 그래픽의 교체 조건은 [그래픽 계약](GRAPHICS_CONTRACT.md)에 기록한다.
 
 ## Phase 5 표시 및 오디오
 

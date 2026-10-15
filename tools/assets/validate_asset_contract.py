@@ -131,6 +131,9 @@ def check_character(folder: Path, expected_role: str | None = None) -> None:
             racket_manifest.get("contact_point") == contact and racket_manifest.get("animations") ==
             {name: animations[name] for name in ("idle", "swing", "miss")}, f"{character_id}: racket contract mismatch")
     frames_resource = (folder / "frames.tres").read_text(encoding="utf-8")
+    rig = json_file(folder / "rig.json")
+    require(rig.get("schema_version") == 1 and rig.get("frame_size") == [128, 128], f"{character_id}: invalid joint rig header")
+    rig_parts = ("torso", "upper_arm", "forearm", "hand")
     for name, timing in animations.items():
         count = timing["count"]
         require(isinstance(count, int) and count > 0 and timing["fps"] > 0, f"{character_id}/{name}: invalid timing")
@@ -158,6 +161,27 @@ def check_character(folder: Path, expected_role: str | None = None) -> None:
         with Image.open(folder / f"{character_id}_{name}.png") as source, Image.open(folder / f"{character_id}_body_{name}.png") as body, Image.open(racket_folder / f"{character_id}_racket_{name}.png") as racket:
             reconstructed = Image.alpha_composite(body.convert("RGBA"), racket.convert("RGBA"))
             require(reconstructed.tobytes() == source.convert("RGBA").tobytes(), f"{character_id}/{name}: body + racket must reproduce source art")
+            require(len(rig["joints"][name]) == count, f"{character_id}/{name}: joint keyframe count mismatch")
+            layers = []
+            for part in rig_parts:
+                resource = (folder / f"{part}.tres").read_text(encoding="utf-8")
+                require(f"{character_id}_{part}_{name}.png" in resource, f"{character_id}/{part}: missing {name} resource")
+                with Image.open(folder / f"{character_id}_{part}_{name}.png") as layer:
+                    require(layer.size == body.size, f"{character_id}/{part}/{name}: wrong sheet size")
+                    rgba = layer.convert("RGBA")
+                    require(not any(rgba.getchannel("A").histogram()[1:255]), f"{character_id}/{part}/{name}: nonbinary alpha")
+                    layers.append(rgba.copy())
+            recomposed_body = Image.new("RGBA", body.size)
+            for layer in layers:
+                recomposed_body = Image.alpha_composite(recomposed_body, layer)
+            require(recomposed_body.tobytes() == body.convert("RGBA").tobytes(), f"{character_id}/{name}: rig layers must reproduce body art")
+            for joints in rig["joints"][name]:
+                require(all(len(joints[j]) == 2 and all(isinstance(v, int) and 0 <= v < 128 for v in joints[j])
+                            for j in ("shoulder", "elbow", "wrist")), f"{character_id}/{name}: invalid joint coordinates")
+    for animation, offsets in rig.get("pose_offsets_deg", {}).items():
+        require(animation in animations and len(offsets) == animations[animation]["count"] and
+                all(len(entry) == 3 and all(abs(v) <= 45 for v in entry) for entry in offsets),
+                f"{character_id}/{animation}: invalid joint rotations")
     contact_index = manifest["contact_frame"]
     require(0 <= contact_index < animations["swing"]["count"], f"{character_id}: contact frame out of range")
     with Image.open(folder / f"{character_id}_swing.png") as sheet:

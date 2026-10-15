@@ -84,7 +84,7 @@ AI 수비 점수는 난이도별 능력(55/65/75) + 난수[-45,45] − 공격 �
 캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임, 공·그림자·배경 PNG와 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다. 현재 오른손잡이 플레이어는 화면 오른쪽 전경, 오른손잡이 상대는 왼쪽 원경에 선다. 탁구대·네트 PNG는 공과 같은 투영 좌표에서 제작됐다.
 플레이어 Swing은 낮은 백스윙에서 위로 감아 올리는 오른손 포핸드 드라이브 6프레임이다.
 
-현재 프로토타입의 캐릭터 몸·라켓 면과 손잡이 일부·탁구대·네트·공·배경·효과·UI 장식은 모두 실제 기준 PNG를 사용하고, 글꼴·효과음도 프로젝트 에셋으로 연결했다. 새 디자인은 [표준 에셋 키트 v2](docs/ASSET_TEMPLATE.md)의 템플릿과 `python3 tools/assets/validate_asset_contract.py` 검사를 사용한다. 쥔 손/라켓 접합 픽셀은 캐릭터 시트에 남아 있고, 관절별 분리 팔 리깅은 아직 없다.
+현재 프로토타입의 캐릭터 몸통·위팔·아래팔·손·라켓, 탁구대·네트·공·배경·효과·UI 장식은 모두 실제 기준 PNG를 사용하고, 글꼴·효과음도 프로젝트 에셋으로 연결했다. 새 디자인은 [표준 에셋 키트 v3](docs/ASSET_TEMPLATE.md)의 템플릿과 `python3 tools/assets/validate_asset_contract.py` 검사를 사용한다. 어깨·팔꿈치·손목 관절 좌표와 회전은 캐릭터별 `rig.json`에 있다.
 
 
 ## Phase 4 캐릭터
@@ -100,7 +100,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/character_render
 
 ## Phase 4 근접 경기장
 [게임 화면](docs/previews/rear-court-game.png) / [Idle 화면](docs/previews/rear-court-idle.png) / [경기장 검증](docs/PHASE4_COURT_VALIDATION.md).
-화면 구성 값은 `assets/table/layout.json`에서 관리한다. `court_scale`/`court_offset`을 바꾸면 공·접촉점뿐 아니라 탁구대·네트 PNG도 `python3 tools/assets/build_standard_assets.py`로 다시 생성해야 한다. 게임 실행에는 Python이 필요 없다. 현재 캐릭터 몸과 라켓 면은 별도 시트이며, 새 앞팔 레이어는 역할별 `arm_front.tres`로 추가할 수 있다. 원래의 전신 28프레임도 원본/폴백으로 보존한다.
+화면 구성 값은 `assets/table/layout.json`에서 관리한다. `court_scale`/`court_offset`을 바꾸면 공·접촉점뿐 아니라 탁구대·네트 PNG도 `python3 tools/assets/build_standard_assets.py`로 다시 생성해야 한다. 게임 실행에는 Python이 필요 없다. 캐릭터는 관절별 시트와 라켓 시트를 사용하며, 원래의 전신 28프레임도 원본/폴백으로 보존한다.
 
 ## Phase 5 프로토타입 연출
 

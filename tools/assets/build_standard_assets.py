@@ -241,5 +241,7 @@ def build_ui() -> None:
 if __name__ == "__main__":
     build_table()
     build_rackets()
+    from build_arm_rig import main as build_arm_rig
+    build_arm_rig()
     build_effects()
     build_ui()

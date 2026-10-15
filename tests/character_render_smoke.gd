@@ -72,6 +72,8 @@ func _run() -> void:
 			layer_image.fill_rect(Rect2i(31, 80, 6, 6), Color("54c7e6"))
 			front.add_frame(entry[0], ImageTexture.create_from_image(layer_image))
 	battle.court.enemy_actor.front_frames = front
+	var saved_rig: Dictionary = battle.court.enemy_actor.rig_data
+	battle.court.enemy_actor.rig_data = {}
 	battle.court.queue_redraw()
 	await RenderingServer.frame_post_draw
 	var arm_scale: float = float(battle.court.layout["enemy_scale"])
@@ -79,6 +81,7 @@ func _run() -> void:
 	var arm_sample: Vector2i = Vector2i((arm_top_left + Vector2(34, 83) * arm_scale).round())
 	assert(root.get_texture().get_image().get_pixelv(arm_sample).is_equal_approx(Color("54c7e6")))
 	battle.court.enemy_actor.front_frames = null
+	battle.court.enemy_actor.rig_data = saved_rig
 	battle.court.queue_redraw()
 	await at_time(start + 800000)
 	var target: int = battle.rally.target_us

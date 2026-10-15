@@ -332,13 +332,56 @@ func _character(feet: Vector2, player: bool, swinging: bool) -> void:
 
 func _character_front(feet: Vector2, player: bool) -> void:
 	var actor: RefCounted = player_actor if player else enemy_actor
+	if actor.has_rig():
+		for part in ["upper_arm", "forearm", "hand"]:
+			_draw_rig_part(feet, player, part, actor.rig_texture_at(part, time_seconds))
+		return
 	if actor.has_front_layer():
 		_draw_character_texture(feet, player, actor.front_texture_at(time_seconds))
 
 func _draw_racket(feet: Vector2, player: bool) -> void:
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.has_racket_layer():
-		_draw_character_texture(feet, player, actor.racket_texture_at(time_seconds))
+		if actor.has_rig():
+			_draw_rig_part(feet, player, "racket", actor.racket_texture_at(time_seconds))
+		else:
+			_draw_character_texture(feet, player, actor.racket_texture_at(time_seconds))
+
+func _draw_rig_part(feet: Vector2, player: bool, part: String, texture: Texture2D) -> void:
+	if texture == null:
+		return
+	var actor: RefCounted = player_actor if player else enemy_actor
+	var pose: Dictionary = actor.rig_pose_at(time_seconds)
+	if pose.is_empty():
+		return
+	var scale_factor: float = float(layout["player_scale"] if player else layout["enemy_scale"])
+	var hit_at: float = player_hit_at if player else enemy_hit_at
+	var tint: Color = Color("ff9380") if time_seconds - hit_at < 0.25 and int((time_seconds - hit_at) * 30.0) % 2 == 0 else Color.WHITE
+	if winner_side >= 0 and (0 if player else 1) != winner_side:
+		tint = Color(0.55, 0.62, 0.72)
+	if time_seconds - hit_at < 0.25:
+		feet.x += 4.0 if int((time_seconds - hit_at) * 30.0) % 2 == 0 else -4.0
+	var top_left: Vector2 = (feet - actor.pivot * scale_factor).round()
+	var shoulder: Vector2 = pose["shoulder"]
+	var elbow: Vector2 = pose["elbow"]
+	var wrist: Vector2 = pose["wrist"]
+	var angles: Vector3 = pose["angles"]
+	var elbow_new: Vector2 = shoulder + (elbow - shoulder).rotated(angles.x)
+	var wrist_new: Vector2 = elbow_new + (wrist - elbow).rotated(angles.x + angles.y)
+	var anchor: Vector2 = shoulder
+	var moved: Vector2 = shoulder
+	var angle: float = angles.x
+	if part == "forearm":
+		anchor = elbow
+		moved = elbow_new
+		angle += angles.y
+	elif part == "hand" or part == "racket":
+		anchor = wrist
+		moved = wrist_new
+		angle += angles.y + angles.z
+	draw_set_transform(top_left + moved * scale_factor, angle)
+	draw_texture_rect(texture, Rect2(-anchor * scale_factor, Vector2.ONE * 128.0 * scale_factor), false, tint)
+	draw_set_transform(Vector2.ZERO)
 
 func _draw_character_texture(feet: Vector2, player: bool, texture: Texture2D) -> void:
 	if texture == null:

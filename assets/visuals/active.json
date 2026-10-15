@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "prototype_default",
   "background": "res://assets/backgrounds/background_main.png",
   "ball": "res://assets/ball/ball_main.png",
@@ -28,5 +28,67 @@
     "racket_handle": "ba9c74",
     "damage": "ff8a73",
     "hud_scrim": "0b1020c7"
-  }
+  },
+  "table": "res://assets/table/table_main.png",
+  "net": "res://assets/table/table_net.png",
+  "hud_scrim": "res://assets/ui/hud_scrim.png",
+  "effects": {
+    "marker": {
+      "path": "res://assets/effects/contact_marker.png",
+      "cell_size": [
+        36,
+        36
+      ],
+      "frames": 1
+    },
+    "bounce": {
+      "path": "res://assets/effects/bounce.png",
+      "cell_size": [
+        32,
+        32
+      ],
+      "frames": 4
+    },
+    "impact": {
+      "path": "res://assets/effects/impact.png",
+      "cell_size": [
+        48,
+        48
+      ],
+      "frames": 6
+    },
+    "perfect": {
+      "path": "res://assets/effects/perfect.png",
+      "cell_size": [
+        80,
+        80
+      ],
+      "frames": 6
+    },
+    "trail": {
+      "path": "res://assets/effects/trail.png",
+      "cell_size": [
+        8,
+        8
+      ],
+      "frames": 1
+    },
+    "damage": {
+      "path": "res://assets/effects/damage_spark.png",
+      "cell_size": [
+        8,
+        8
+      ],
+      "frames": 1
+    },
+    "confetti": {
+      "path": "res://assets/effects/confetti.png",
+      "cell_size": [
+        4,
+        6
+      ],
+      "frames": 1
+    }
+  },
+  "layout_sha256": "79359cb5d53739763d950dcc6a0d4c6390870f27bc5faa6ba6177f4fdc161e8f"
 }

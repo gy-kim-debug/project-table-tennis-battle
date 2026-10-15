@@ -151,12 +151,12 @@ PNG는 실제 128셀, lossless/mipmaps 없음, 프로젝트 Nearest. 원본/문�
 
 
 ## Phase 4 근접 경기장 투영
-`assets/table/layout.json`을 화면 투영의 기준으로 둔다. CourtView는 JSON을 읽어 논리 x·깊이·높이를 화면 x/y로 바꾸고, `court_scale`/`court_offset`으로 화면상의 크기와 위치를 조절한다. 깊이에 1.65 지수를 적용해 등 뒤에서 약간 내려다보는 근접 원근을 만든다. 공·그림자·바운드·접촉 마커·탁구대·네트와 캐릭터의 라켓 기준점은 한 투영을 사용한다. 예전 `tools/assets/build_court.py`가 만든 탁구대/네트 PNG는 참고 시안이며, 현재 탁구대/네트 윤곽은 런타임에서 같은 투영으로 그린다. 레이어는 배경→상대 몸→탁구대→상대 앞팔→원경 공→네트→플레이어 몸/앞팔→근경 공→효과→HUD다. 탁구대 상판이 상대의 하반신을 원근 경계에서 가린다. 선택적 몸/팔 SpriteFrames는 프레임·속도를 맞춰 같은 게임 시각에 그린다. 순수 랠리/전투 모델의 판정창·시계는 변경하지 않는다. 신규 그래픽의 교체 조건은 [그래픽 계약](GRAPHICS_CONTRACT.md)에 기록한다.
+`assets/table/layout.json`을 화면 투영의 기준으로 둔다. CourtView는 JSON을 읽어 논리 x·깊이·높이를 화면 x/y로 바꾸고, `court_scale`/`court_offset`으로 화면상의 크기와 위치를 조절한다. 깊이에 1.65 지수를 적용해 등 뒤에서 약간 내려다보는 근접 원근을 만든다. 공·그림자·라켓 접촉점은 같은 투영을 사용한다. 탁구대·네트 PNG는 `tools/assets/build_standard_assets.py`가 그 투영에서 생성하고 CourtView가 로드한다. 레이어는 배경→상대 몸→탁구대→상대 앞팔/라켓→원경 공→네트→플레이어 몸/앞팔/라켓→근경 공→효과→HUD다. 탁구대 상판이 상대의 하반신을 가린다. 선택적 앞팔과 독립 라켓 SpriteFrames는 몸과 같은 프레임·속도로 그린다. 순수 랠리/전투 모델의 판정창·시계는 변경하지 않는다. 신규 그래픽의 교체 조건은 [그래픽 계약](GRAPHICS_CONTRACT.md)에 기록한다.
 
 ## Phase 5 표시 및 오디오
 
 Battle(Node)는 전투/랠리 이벤트를 CourtView와 SoundController에 전달한다. CourtView는 Perfect 접촉 시 정지 시작·종료 게임 시각을 보관하고, 해당 구간에서만 직전 표시 시각으로 공·캐릭터를 그린다. 잔상, 충격파, 피격 파편, 승패 효과도 표시 상태에만 존재한다. 재시작하면 효과/결과 자세를 초기화한다. `SoundController`는 짧은 WAV 9종과 4개 플레이어를 소유하며 Pause UI 신호로 음소거를 저장한다. Headless에서는 오디오 재생을 생략하고 이벤트 호출을 검사한다. 수동 일시정지와 앱 복귀 정책, 실제 음량은 기기에서 추가 검수한다.
 
-## 표준 에셋 키트 v1
+## 표준 에셋 키트 v2
 
-`assets/table/layout.json`은 화면 투영과 두 캐릭터 ID, `assets/visuals/active.json`은 배경·공·그림자 경로와 탁구대/이펙트 팔레트, `assets/audio/active.json`은 이벤트별 효과음 경로, `resources/catalog.json`은 패턴·난이도 Resource 순서를 선언한다. `CharacterAnimator`는 캐릭터 manifest의 자세 이름과 접촉 프레임을 읽고, `PatternData`는 플레이어/상대의 Swing 자세 ID를 전달한다. 추가 에셋의 크기·피벗·알파·패턴 가중치는 `tools/assets/validate_asset_contract.py`에서 검사한다. 전투 판정 모델은 이 시각 설정을 참조하지 않는다. 제작 및 연결 상태는 [표준 에셋 키트](ASSET_TEMPLATE.md)에 기록한다.
+`assets/table/layout.json`은 화면 투영과 두 캐릭터 ID, `assets/visuals/active.json`은 배경·탁구대·네트·공·효과 PNG, `assets/ui/active.json`은 UI PNG·글꼴, `assets/audio/active.json`은 효과음, `resources/catalog.json`은 패턴·난이도 Resource 순서를 선언한다. `CharacterAnimator`는 캐릭터 manifest의 자세·접촉점·라켓 ID를 읽고 같은 게임 시각에 몸과 라켓 시트를 표시한다. 추가 에셋의 크기·피벗·알파·투영 해시·패턴 가중치는 `tools/assets/validate_asset_contract.py`에서 검사한다. 전투 판정 모델은 시각 설정을 참조하지 않는다. 제작 및 연결 상태는 [표준 에셋 키트](ASSET_TEMPLATE.md)에 기록한다.

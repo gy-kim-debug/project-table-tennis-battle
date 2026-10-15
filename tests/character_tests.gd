@@ -53,6 +53,7 @@ func run(check: Callable) -> void:
 	for role in ["player", "enemy"]:
 		var actual: RefCounted = Animator.new()
 		check.call(actual.configure(role), "actual character library loads " + role)
+		check.call(actual.has_racket_layer(), "selected racket artwork loads " + role)
 		check.call(actual.contact_frame == 3, "actual contact frame metadata")
 		for entry in [["idle", 4], ["swing", 6], ["miss", 4]]:
 			check.call(actual.frames.get_frame_count(entry[0]) == entry[1], "actual frame count " + role + entry[0])
@@ -69,6 +70,7 @@ func run(check: Callable) -> void:
 						break
 				check.call(binary, "actual frame alpha is binary")
 				check.call(image.get_used_rect().end.y == 117, "actual foot baseline remains 116")
+				check.call(actual.racket_frames.get_frame_count(entry[0]) == entry[1], "racket frame count follows character action")
 		actual.swing_at(1.0)
 		check.call(actual.index_at(1.0) == 3, "actual animation contacts on time")
 

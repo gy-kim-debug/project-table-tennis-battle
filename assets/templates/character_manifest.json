@@ -4,6 +4,7 @@
   "pivot": [48, 116],
   "contact_frame": 3,
   "contact_point": [114, 34],
+  "racket_id": "player_new",
   "animations": {
     "idle": {"count": 4, "fps": 4, "loop": true},
     "swing": {"count": 6, "fps": 20, "loop": false},

@@ -50,12 +50,15 @@ func _run() -> void:
 	var cover_point: Vector2i = Vector2i(110, 235)
 	var rendered: Color = root.get_texture().get_image().get_pixelv(cover_point)
 	assert(rendered.is_equal_approx(Color("168397")))
-	var original_near_color: String = String(battle.court.visual_palette["court_near"])
-	battle.court.visual_palette["court_near"] = "ff00ff"
+	assert(battle.court.table_texture != null and battle.court.net_texture != null)
+	var original_table: Texture2D = battle.court.table_texture
+	var replacement: Image = original_table.get_image()
+	replacement.set_pixel(80, 350, Color("ff00ff"))
+	battle.court.table_texture = ImageTexture.create_from_image(replacement)
 	battle.court.queue_redraw()
 	await RenderingServer.frame_post_draw
 	assert(root.get_texture().get_image().get_pixelv(Vector2i(80, 350)).is_equal_approx(Color("ff00ff")))
-	battle.court.visual_palette["court_near"] = original_near_color
+	battle.court.table_texture = original_table
 	battle.court.queue_redraw()
 	await RenderingServer.frame_post_draw
 	var front: SpriteFrames = SpriteFrames.new()

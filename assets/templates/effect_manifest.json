@@ -1,12 +1,11 @@
 {
   "schema_version": 1,
-  "id": "effect_new",
-  "sheet": "effect_new.png",
-  "cell_size": [32, 32],
-  "frame_count": 4,
-  "fps": 20,
-  "pivot": [16, 16],
+  "id": "impact",
+  "sheet": "res://assets/effects/impact.png",
+  "cell_size": [48, 48],
+  "frame_count": 6,
+  "pivot": [24, 24],
   "attach_to": "racket_contact",
   "layer": "above_players",
-  "status": "design_contract_only"
+  "status": "runtime_sprite"
 }

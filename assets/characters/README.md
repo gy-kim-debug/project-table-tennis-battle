@@ -1,5 +1,7 @@
 # 128×128 캐릭터 애니메이션
 
+현재 실행 화면은 각 역할의 `body_back.tres`와 `assets/rackets/<racket_id>/frames.tres`를 합쳐 그린다. 아래 원본 `frames.tres`·GIF는 제작 당시의 전신 시트 기록이다. 새 에셋 제작 기준은 [표준 에셋 키트 v2](../../docs/ASSET_TEMPLATE.md)다.
+
 승인된 v3 방향으로 제작한 플레이어/상대의 **Idle 4 + Swing 6 + Miss 4**, 총 28프레임이다. 플레이어 Swing은 오른손 포핸드 드라이브다. 아래 GIF는 확인용 2배 Nearest 확대이며 실제 프레임은 128×128이다. 각 GIF는 게임의 프레임 속도(4/20/10fps)를 반영하며 반복 표시한다. 게임에서 Swing/Miss는 한 번 재생하고 Idle로 복귀한다.
 
 | 동작 | 플레이어 | 상대 |

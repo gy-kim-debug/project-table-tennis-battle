@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import re
 import sys
 import wave
@@ -24,6 +25,17 @@ REQUIRED_PALETTE = {
     "player", "opponent", "skin", "racket_handle", "damage", "hud_scrim",
 }
 REQUIRED_CUES = {"swing", "good", "perfect", "miss", "bounce", "damage", "smash", "victory", "defeat"}
+EFFECT_SPECS = {
+    "marker": ((36, 36), 1), "bounce": ((32, 32), 4),
+    "impact": ((48, 48), 6), "perfect": ((80, 80), 6),
+    "trail": ((8, 8), 1), "damage": ((8, 8), 1),
+    "confetti": ((4, 6), 1),
+}
+UI_SPECS = {
+    "pause_panel": (312, 260), "result_panel": (312, 180),
+    "button": (32, 32), "button_pressed": (32, 32),
+    "hp_base": (8, 8), "hp_player": (8, 8), "hp_enemy": (8, 8), "menu_arrow": (9, 7),
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -46,19 +58,44 @@ def json_file(path: Path) -> dict:
 
 def check_visual_profile(path: Path) -> None:
     profile = json_file(path)
-    require(profile.get("schema_version") == 1 and profile.get("id"), "visual profile needs schema_version=1 and id")
-    for key, size, transparent in (("background", (360, 640), False), ("ball", (12, 12), True), ("shadow", (16, 6), True)):
+    require(profile.get("schema_version") == 2 and profile.get("id"), "visual profile needs schema_version=2 and id")
+    layout = json_file(ROOT / "assets/table/layout.json")
+    digest = hashlib.sha256(json.dumps(layout, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    require(profile.get("layout_sha256") == digest, "table/net art must be built for the current court layout")
+    for key, size, transparent in (("background", (360, 640), False), ("ball", (12, 12), True), ("shadow", (16, 6), True),
+                                   ("table", (360, 640), True), ("net", (360, 640), True), ("hud_scrim", (360, 110), True)):
         with Image.open(local_path(profile[key])) as image:
             require(image.size == size, f"{key} must be {size}: {image.size}")
             alpha = image.convert("RGBA").getchannel("A")
             low, high = alpha.getextrema()
-            require(high == 255 and (low < 255 if transparent else low == 255), f"{key} alpha mode does not match the contract")
+            if key == "hud_scrim":
+                require(0 < low == high < 255, "HUD scrim must have uniform translucency")
+            else:
+                require(high == 255 and (low < 255 if transparent else low == 255), f"{key} alpha mode does not match the contract")
     palette = profile["palette"]
     require(isinstance(palette, dict) and REQUIRED_PALETTE <= palette.keys(), "visual palette is missing required color slots")
     for name, value in palette.items():
         require(isinstance(value, str) and re.fullmatch(r"[0-9a-fA-F]{6}([0-9a-fA-F]{2})?", value) is not None,
                 f"invalid color {name}: {value}")
+    effects = profile["effects"]
+    require(isinstance(effects, dict) and EFFECT_SPECS.keys() <= effects.keys(), "visual profile is missing effect sprites")
+    for name, (size, count) in EFFECT_SPECS.items():
+        spec = effects[name]
+        require(spec["cell_size"] == list(size) and spec["frames"] == count, f"{name}: wrong effect frame contract")
+        with Image.open(local_path(spec["path"])) as image:
+            require(image.size == (size[0] * count, size[1]) and (name == "confetti" or image.convert("RGBA").getchannel("A").getextrema()[0] == 0),
+                    f"{name}: effect sheet size or transparency invalid")
     print(f"PASS visual profile: {profile['id']}")
+
+
+def check_ui_profile(path: Path) -> None:
+    profile = json_file(path)
+    require(profile.get("schema_version") == 1 and profile.get("id"), "UI profile needs schema_version=1 and id")
+    require(local_path(profile["font"]).suffix.lower() in (".ttf", ".otf"), "UI font must be an imported font file")
+    for name, size in UI_SPECS.items():
+        with Image.open(local_path(profile[name])) as image:
+            require(image.size == size, f"{name}: UI texture must be {size}")
+    print(f"PASS UI profile: {profile['id']}")
 
 
 def check_audio_profile(path: Path) -> None:
@@ -85,6 +122,14 @@ def check_character(folder: Path, expected_role: str | None = None) -> None:
     require(pivot[1] == 116, f"{character_id}: foot baseline must be y=116")
     animations = manifest["animations"]
     require({"idle", "swing", "miss"} <= animations.keys(), f"{character_id}: idle/swing/miss required")
+    racket_id = manifest["racket_id"]
+    require(re.fullmatch(r"[a-z0-9_]+", racket_id) is not None, f"{character_id}: invalid racket ID")
+    racket_folder = ROOT / "assets/rackets" / racket_id
+    racket_manifest = json_file(racket_folder / "manifest.json")
+    require(racket_manifest.get("schema_version") == 1 and racket_manifest.get("id") == racket_id and
+            racket_manifest.get("role") == role and racket_manifest.get("frame_size") == [128, 128] and
+            racket_manifest.get("contact_point") == contact and racket_manifest.get("animations") ==
+            {name: animations[name] for name in ("idle", "swing", "miss")}, f"{character_id}: racket contract mismatch")
     frames_resource = (folder / "frames.tres").read_text(encoding="utf-8")
     for name, timing in animations.items():
         count = timing["count"]
@@ -100,11 +145,27 @@ def check_character(folder: Path, expected_role: str | None = None) -> None:
                 require(box is not None and box[0] > 0 and box[2] < 128 and box[3] == 117,
                         f"{character_id}/{name}/{index}: cut off or inconsistent feet")
                 require(not any(alpha.histogram()[1:255]), f"{character_id}/{name}/{index}: nonbinary alpha")
+        for layer, resource_path, layer_folder in (("body", folder / "body_back.tres", folder),
+                                                    ("racket", racket_folder / "frames.tres", racket_folder)):
+            layer_resource = resource_path.read_text(encoding="utf-8")
+            require(f'"name": &"{name}"' in layer_resource, f"{character_id}/{layer}: missing {name} animation")
+            expected_path = f'res://{(layer_folder / f"{character_id}_{layer}_{name}.png").relative_to(ROOT)}'
+            require(expected_path in layer_resource, f"{character_id}/{layer}: wrong {name} sheet path")
+            with Image.open(folder / f"{character_id}_{name}.png") as source, Image.open(layer_folder / f"{character_id}_{layer}_{name}.png") as sheet:
+                require(sheet.size == source.size, f"{character_id}/{layer}/{name}: wrong sheet size")
+                alpha = sheet.convert("RGBA").getchannel("A")
+                require(not any(alpha.histogram()[1:255]), f"{character_id}/{layer}/{name}: nonbinary alpha")
+        with Image.open(folder / f"{character_id}_{name}.png") as source, Image.open(folder / f"{character_id}_body_{name}.png") as body, Image.open(racket_folder / f"{character_id}_racket_{name}.png") as racket:
+            reconstructed = Image.alpha_composite(body.convert("RGBA"), racket.convert("RGBA"))
+            require(reconstructed.tobytes() == source.convert("RGBA").tobytes(), f"{character_id}/{name}: body + racket must reproduce source art")
     contact_index = manifest["contact_frame"]
     require(0 <= contact_index < animations["swing"]["count"], f"{character_id}: contact frame out of range")
     with Image.open(folder / f"{character_id}_swing.png") as sheet:
         point = sheet.convert("RGBA").getpixel((contact_index * 128 + contact[0], contact[1]))
         require(point[3] == 255, f"{character_id}: contact point misses racket art")
+    with Image.open(racket_folder / f"{character_id}_racket_swing.png") as sheet:
+        point = sheet.convert("RGBA").getpixel((contact_index * 128 + contact[0], contact[1]))
+        require(point[3] == 255, f"{character_id}: isolated racket misses contact point")
     for pose, spec in manifest.get("swing_variants", {}).items():
         animation = spec["animation"]
         require(pose and animation in animations, f"{character_id}: unknown swing animation for {pose}")
@@ -169,11 +230,13 @@ def main() -> None:
     parser.add_argument("--character-dir", type=Path, help="validate an extra character folder")
     parser.add_argument("--profile", type=Path, default=ROOT / "assets/visuals/active.json")
     parser.add_argument("--audio-profile", type=Path, default=ROOT / "assets/audio/active.json")
+    parser.add_argument("--ui-profile", type=Path, default=ROOT / "assets/ui/active.json")
     args = parser.parse_args()
     layout = json_file(ROOT / "assets/table/layout.json")
     check_layout(ROOT / "assets/table/layout.json")
     check_visual_profile(args.profile)
     check_audio_profile(args.audio_profile)
+    check_ui_profile(args.ui_profile)
     for key, role in (("player_character", "player"), ("enemy_character", "enemy")):
         check_character(ROOT / "assets/characters" / layout[key], role)
     if args.character_dir:

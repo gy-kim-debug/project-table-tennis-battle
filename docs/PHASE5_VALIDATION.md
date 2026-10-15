@@ -1,5 +1,7 @@
 # Phase 5 프로토타입 검증
 
+이 문서는 Phase 5 당시의 검증 기록이다. 현재 이펙트·UI 그래픽은 [표준 에셋 키트 v2](ASSET_TEMPLATE.md)의 PNG/글꼴 기준 에셋으로 교체됐다.
+
 2026-10-13, Godot 4.6.3 stable, Linux 가상 X11/OpenGL. 사용자 직접 실행은 개발 후로 연기했다.
 
 ## 구현

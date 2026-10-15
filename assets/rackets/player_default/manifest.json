@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "player_default",
+  "role": "player",
+  "frame_size": [
+    128,
+    128
+  ],
+  "contact_point": [
+    114,
+    34
+  ],
+  "animations": {
+    "idle": {
+      "count": 4,
+      "fps": 4,
+      "loop": true
+    },
+    "swing": {
+      "count": 6,
+      "fps": 20,
+      "loop": false
+    },
+    "miss": {
+      "count": 4,
+      "fps": 10,
+      "loop": false
+    }
+  },
+  "grip_owner": "racket_layer"
+}

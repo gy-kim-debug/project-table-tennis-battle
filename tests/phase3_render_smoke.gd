@@ -42,13 +42,21 @@ func tap(position: Vector2) -> void:
 func jump_to(game_us: int) -> void:
 	battle.clock.origin_us = Time.get_ticks_usec() - game_us
 	battle.clock.excluded_us = 0
+	battle.combat.advance(game_us)
+	battle._refresh()
 	await process_frame
 	await process_frame
 
 func swing_at_target() -> void:
 	battle.clock.origin_us = Time.get_ticks_usec() - battle.rally.target_us
 	battle.clock.excluded_us = 0
-	await key_press(KEY_SPACE)
+	var key := InputEventKey.new()
+	key.keycode = KEY_SPACE
+	key.pressed = true
+	battle._unhandled_input(key)
+	battle.combat.advance(battle.rally.contact_us)
+	battle._refresh()
+	await process_frame
 
 func _run() -> void:
 	if DisplayServer.get_name() == "headless":
@@ -62,6 +70,7 @@ func _run() -> void:
 	battle = Scene.instantiate()
 	root.add_child(battle)
 	await process_frame
+	battle.set_process(false)
 	for profile_index in range(3):
 		await tap(Vector2(310, 40))
 		assert(battle.clock.paused)

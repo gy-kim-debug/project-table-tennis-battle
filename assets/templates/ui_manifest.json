@@ -1,8 +1,18 @@
 {
   "schema_version": 1,
   "id": "ui_new",
-  "reference_canvas": [360, 640],
+  "reference_canvas": [
+    360,
+    640
+  ],
+  "font": "res://assets/ui/DejaVuSansCondensed.ttf",
+  "pause_panel": "res://assets/ui/pause_panel.png",
+  "result_panel": "res://assets/ui/result_panel.png",
+  "button": "res://assets/ui/button.png",
+  "button_pressed": "res://assets/ui/button_pressed.png",
+  "hp_base": "res://assets/ui/hp_base.png",
+  "hp_player": "res://assets/ui/hp_player.png",
+  "hp_enemy": "res://assets/ui/hp_enemy.png",
   "text_remains_runtime_text": true,
-  "layers": ["world_effects", "hud", "pause_menu", "result"],
-  "status": "design_contract_only"
+  "menu_arrow": "res://assets/ui/menu_arrow.png"
 }

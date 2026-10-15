@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "id": "prototype_ui",
+  "font": "res://assets/ui/DejaVuSansCondensed.ttf",
+  "pause_panel": "res://assets/ui/pause_panel.png",
+  "result_panel": "res://assets/ui/result_panel.png",
+  "button": "res://assets/ui/button.png",
+  "button_pressed": "res://assets/ui/button_pressed.png",
+  "hp_base": "res://assets/ui/hp_base.png",
+  "hp_player": "res://assets/ui/hp_player.png",
+  "hp_enemy": "res://assets/ui/hp_enemy.png",
+  "menu_arrow": "res://assets/ui/menu_arrow.png"
+}

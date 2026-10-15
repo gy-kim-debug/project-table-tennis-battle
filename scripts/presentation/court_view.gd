@@ -9,6 +9,10 @@ var visual_palette: Dictionary = {}
 var background_texture: Texture2D
 var ball_texture: Texture2D
 var shadow_texture: Texture2D
+var table_texture: Texture2D
+var net_texture: Texture2D
+var hud_texture: Texture2D
+var effect_textures: Dictionary = {}
 var player_actor: RefCounted = Animator.new()
 var enemy_actor: RefCounted = Animator.new()
 var last_ball_id: int = -1
@@ -71,6 +75,12 @@ func _ready() -> void:
 		background_texture = _profile_texture(profile, "background")
 		ball_texture = _profile_texture(profile, "ball")
 		shadow_texture = _profile_texture(profile, "shadow")
+		table_texture = _profile_texture(profile, "table")
+		net_texture = _profile_texture(profile, "net")
+		hud_texture = _profile_texture(profile, "hud_scrim")
+		for name in profile.get("effects", {}):
+			var effect: Dictionary = profile["effects"][name]
+			effect_textures[name] = _profile_texture(effect, "path")
 	player_actor.configure(String(layout["player_character"]))
 	enemy_actor.configure(String(layout["enemy_character"]))
 
@@ -127,22 +137,33 @@ func _draw() -> void:
 	# The opponent stands behind the table. The table surface masks their lower
 	# body at its actual projected far edge; sprite sheets need no screen-y crop.
 	_character(_anchor(false), false, time_seconds - enemy_swing_at < 0.22)
-	_draw_table()
+	if table_texture != null:
+		draw_texture(table_texture, Vector2.ZERO)
+	else:
+		_draw_table()
 	_character_front(_anchor(false), false)
+	_draw_racket(_anchor(false), false)
 	if show_ball and ball.y < float(layout["net_depth"]):
 		_draw_trail()
 		_draw_ball()
-	_draw_net()
+	if net_texture != null:
+		draw_texture(net_texture, Vector2.ZERO)
+	else:
+		_draw_net()
 	var hit: Vector2 = player_contact
-	# A quiet fixed contact marker teaches timing without another control.
-	draw_arc(hit, 12, 0, TAU, 16, _color("marker", LINE), 1, false)
-	draw_line(hit + Vector2(-17, 0), hit + Vector2(-12, 0), _color("marker", LINE), 1)
-	draw_line(hit + Vector2(12, 0), hit + Vector2(17, 0), _color("marker", LINE), 1)
+	if effect_textures.get("marker") != null:
+		_draw_effect("marker", hit)
+	else:
+		draw_arc(hit, 12, 0, TAU, 16, _color("marker", LINE), 1, false)
 	if time_seconds - bounce_at < 0.16:
-		var r: float = 3.0 + (time_seconds - bounce_at) * 45.0
-		draw_arc(bounce_position, r, 0, TAU, 12, _color("ball_normal", Color("fff4d2")), 1)
+		if effect_textures.get("bounce") != null:
+			_draw_effect("bounce", bounce_position, mini(3, int((time_seconds - bounce_at) / 0.04)))
+		else:
+			var r: float = 3.0 + (time_seconds - bounce_at) * 45.0
+			draw_arc(bounce_position, r, 0, TAU, 12, _color("ball_normal", Color("fff4d2")), 1)
 	_character(_anchor(true), true, time_seconds - swing_at < 0.22)
 	_character_front(_anchor(true), true)
+	_draw_racket(_anchor(true), true)
 	if show_ball and ball.y >= float(layout["net_depth"]):
 		_draw_trail()
 		_draw_ball()
@@ -151,7 +172,19 @@ func _draw() -> void:
 	_draw_damage(false)
 	_draw_result()
 	# A quiet HUD strip lets the lower HP read over the foreground player.
-	draw_rect(Rect2(0, 530, 360, 110), _color("hud_scrim", Color(0.043, 0.063, 0.125, 0.78)))
+	if hud_texture != null:
+		draw_texture(hud_texture, Vector2(0, 530))
+	else:
+		draw_rect(Rect2(0, 530, 360, 110), _color("hud_scrim", Color(0.043, 0.063, 0.125, 0.78)))
+
+func _draw_effect(name: String, center: Vector2, frame: int = 0, tint: Color = Color.WHITE) -> void:
+	var texture: Texture2D = effect_textures.get(name)
+	if texture == null:
+		return
+	var size: int = texture.get_height()
+	var count: int = maxi(1, texture.get_width() / size)
+	var index: int = clampi(frame, 0, count - 1)
+	draw_texture_rect_region(texture, Rect2((center - Vector2.ONE * size * 0.5).round(), Vector2.ONE * size), Rect2(index * size, 0, size, size), tint)
 
 func _court_point(x: float, depth: float) -> Vector2:
 	return project_point(Vector3(x, depth, 0)).round()
@@ -204,13 +237,20 @@ func _draw_trail() -> void:
 		var size: float = float(4 - index)
 		var color: Color = _color("ball_strong", Color("ffd166")) if trail_gold else _color("ball_normal", Color("fff4d2"))
 		color.a = 0.75 - float(index) * 0.15
-		draw_rect(Rect2(trail_points[index] - Vector2.ONE * size * 0.5, Vector2.ONE * size), color)
+		if effect_textures.get("trail") != null:
+			_draw_effect("trail", trail_points[index], 0, color)
+		else:
+			draw_rect(Rect2(trail_points[index] - Vector2.ONE * size * 0.5, Vector2.ONE * size), color)
 
 func _draw_impact(hit: Vector2) -> void:
 	var age: float = time_seconds - contact_at
 	if age < 0.0 or age >= 0.24:
 		return
 	var perfect: bool = perfect_at == contact_at
+	var effect_name: String = "perfect" if perfect else "impact"
+	if effect_textures.get(effect_name) != null:
+		_draw_effect(effect_name, hit, int(age / 0.04))
+		return
 	var radius: float = 8.0 + age * (110.0 if perfect else 55.0)
 	var color: Color = _color("ball_strong", Color("ffd166")) if perfect else _color("ball_normal", Color("fff4d2"))
 	for direction in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN, Vector2(0.7, 0.7), Vector2(-0.7, 0.7), Vector2(0.7, -0.7), Vector2(-0.7, -0.7)]:
@@ -228,7 +268,11 @@ func _draw_damage(player: bool) -> void:
 	var amount: int = player_damage if player else enemy_damage
 	draw_string(ThemeDB.fallback_font, center + Vector2(0, -age * 38.0), "-%d" % amount, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, _color("damage", Color("ff8a73")))
 	for direction in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
-		draw_rect(Rect2((center + direction * (8.0 + age * 25.0)).round(), Vector2(4, 4)), _color("damage", Color("ff8a73")))
+		var position: Vector2 = (center + direction * (8.0 + age * 25.0)).round()
+		if effect_textures.get("damage") != null:
+			_draw_effect("damage", position)
+		else:
+			draw_rect(Rect2(position, Vector2(4, 4)), _color("damage", Color("ff8a73")))
 
 func _draw_result() -> void:
 	if winner_side < 0:
@@ -240,7 +284,11 @@ func _draw_result() -> void:
 		var x: float = float((index * 79 + 13) % 350)
 		var y: float = 105.0 + fmod(float(index * 47) + elapsed * 48.0, 375.0)
 		var color: Color = _color("ball_strong", Color("ffd166")) if index % 2 == 0 else _color("player", Color("54c7e6"))
-		draw_rect(Rect2(Vector2(x, y).round(), Vector2(3, 5)), color)
+		if effect_textures.get("confetti") != null:
+			var texture: Texture2D = effect_textures["confetti"]
+			draw_texture(texture, Vector2(x, y).round(), color)
+		else:
+			draw_rect(Rect2(Vector2(x, y).round(), Vector2(3, 5)), color)
 
 func _draw_ball() -> void:
 	var pos: Vector2 = project_point(ball).round()
@@ -286,6 +334,11 @@ func _character_front(feet: Vector2, player: bool) -> void:
 	var actor: RefCounted = player_actor if player else enemy_actor
 	if actor.has_front_layer():
 		_draw_character_texture(feet, player, actor.front_texture_at(time_seconds))
+
+func _draw_racket(feet: Vector2, player: bool) -> void:
+	var actor: RefCounted = player_actor if player else enemy_actor
+	if actor.has_racket_layer():
+		_draw_character_texture(feet, player, actor.racket_texture_at(time_seconds))
 
 func _draw_character_texture(feet: Vector2, player: bool, texture: Texture2D) -> void:
 	if texture == null:

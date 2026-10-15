@@ -3,6 +3,7 @@ extends RefCounted
 # Presentation-only: frame selection follows the same paused game clock as the ball.
 var frames: SpriteFrames
 var front_frames: SpriteFrames
+var racket_frames: SpriteFrames
 var pivot: Vector2 = Vector2(64, 116)
 var racket_contact: Vector2 = Vector2(112, 52)
 var contact_frame: int = 3
@@ -22,18 +23,20 @@ func configure(role: String) -> bool:
 		return false
 	frames = load(whole_path) as SpriteFrames if ResourceLoader.exists(whole_path) else null
 	front_frames = null
-	if ResourceLoader.exists(back_path) and ResourceLoader.exists(front_path):
+	racket_frames = null
+	if ResourceLoader.exists(back_path):
 		var fallback: SpriteFrames = frames
 		frames = load(back_path) as SpriteFrames
+		if not available():
+			frames = fallback
+			push_warning("Ignored incompatible body-back frames: " + back_path)
+	if ResourceLoader.exists(front_path) and ResourceLoader.exists(back_path):
 		var candidate: SpriteFrames = load(front_path) as SpriteFrames
 		if _matching_layer(candidate):
 			front_frames = candidate
 		else:
-			frames = fallback
 			push_warning("Ignored incompatible front-arm frames: " + front_path)
-	elif ResourceLoader.exists(back_path):
-		push_warning("Ignored body-back frames without an arm-front layer: " + back_path)
-	elif ResourceLoader.exists(front_path):
+	if ResourceLoader.exists(front_path) and not ResourceLoader.exists(back_path):
 		push_warning("Ignored arm-front frames without a body-back layer: " + front_path)
 	var metadata_path: String = "res://assets/characters/%s/manifest.json" % role
 	if FileAccess.file_exists(metadata_path):
@@ -45,6 +48,14 @@ func configure(role: String) -> bool:
 			pivot = Vector2(anchor[0], anchor[1])
 			contact_frame = int(metadata.get("contact_frame", 3))
 			swing_variants = metadata.get("swing_variants", {})
+			var racket_id: String = String(metadata.get("racket_id", ""))
+			var racket_path: String = "res://assets/rackets/%s/frames.tres" % racket_id
+			if racket_id != "" and ResourceLoader.exists(racket_path):
+				var candidate: SpriteFrames = load(racket_path) as SpriteFrames
+				if _matching_layer(candidate):
+					racket_frames = candidate
+				else:
+					push_warning("Ignored incompatible racket frames: " + racket_path)
 	return available()
 
 func available() -> bool:
@@ -63,6 +74,9 @@ func _matching_layer(candidate: SpriteFrames) -> bool:
 
 func has_front_layer() -> bool:
 	return front_frames != null
+
+func has_racket_layer() -> bool:
+	return racket_frames != null
 
 func reset() -> void:
 	animation = &"idle"
@@ -123,3 +137,9 @@ func front_texture_at(now: float) -> Texture2D:
 		return null
 	var index: int = index_at(now)
 	return front_frames.get_frame_texture(animation, index)
+
+func racket_texture_at(now: float) -> Texture2D:
+	if not has_racket_layer():
+		return null
+	var index: int = index_at(now)
+	return racket_frames.get_frame_texture(animation, index)

@@ -37,9 +37,25 @@ var defense_until: float = -1.0
 var feedback_until: float = -1.0
 var safe_top: float = 0.0
 var safe_bottom: float = 640.0
+var ui_textures: Dictionary = {}
+var ui_font: Font
 
 func _ready() -> void:
+	var profile_path: String = "res://assets/ui/active.json"
+	if FileAccess.file_exists(profile_path):
+		var profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(profile_path))
+		for name in ["pause_panel", "result_panel", "button", "button_pressed", "hp_base", "hp_player", "hp_enemy", "menu_arrow"]:
+			var path: String = String(profile.get(name, ""))
+			if ResourceLoader.exists(path):
+				ui_textures[name] = load(path) as Texture2D
+		var font_path: String = String(profile.get("font", ""))
+		if ResourceLoader.exists(font_path):
+			ui_font = load(font_path) as Font
 	root = Control.new()
+	if ui_font != null:
+		var skin_theme := Theme.new()
+		skin_theme.default_font = ui_font
+		root.theme = skin_theme
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
@@ -63,7 +79,7 @@ func _ready() -> void:
 	style.bg_color = Color("0b1020")
 	style.border_color = Color("54c7e6")
 	style.set_border_width_all(2)
-	overlay.add_theme_stylebox_override("panel", style)
+	overlay.add_theme_stylebox_override("panel", _texture_style("pause_panel") if ui_textures.has("pause_panel") else style)
 	root.add_child(overlay)
 	overlay.hide()
 	var title: Label = Label.new()
@@ -86,6 +102,14 @@ func _ready() -> void:
 	difficulty_picker.size = Vector2(282, 34)
 	difficulty_picker.focus_mode = Control.FOCUS_NONE
 	difficulty_picker.add_theme_font_size_override("font_size", 13)
+	if ui_textures.has("menu_arrow"):
+		difficulty_picker.add_theme_icon_override("arrow", ui_textures["menu_arrow"])
+	_style_button(difficulty_picker)
+	var difficulty_menu: PopupMenu = difficulty_picker.get_popup()
+	if ui_textures.has("button"):
+		difficulty_menu.add_theme_stylebox_override("panel", _texture_style("button"))
+	if ui_textures.has("button_pressed"):
+		difficulty_menu.add_theme_stylebox_override("hover", _texture_style("button_pressed"))
 	for item in ["EASY", "NORMAL", "HARD"]:
 		difficulty_picker.add_item(item)
 	difficulty_picker.select(1)
@@ -134,8 +158,26 @@ func _button(text: String, rect: Rect2) -> Button:
 	button.size = rect.size
 	button.focus_mode = Control.FOCUS_NONE
 	button.add_theme_font_size_override("font_size", 15)
+	_style_button(button)
 	root.add_child(button)
 	return button
+
+func _style_button(button: BaseButton) -> void:
+	if ui_textures.has("button"):
+		button.add_theme_stylebox_override("normal", _texture_style("button"))
+		button.add_theme_stylebox_override("hover", _texture_style("button"))
+		button.add_theme_stylebox_override("disabled", _texture_style("button"))
+	if ui_textures.has("button_pressed"):
+		button.add_theme_stylebox_override("pressed", _texture_style("button_pressed"))
+
+func _texture_style(name: String) -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = ui_textures[name]
+	style.texture_margin_left = 3.0
+	style.texture_margin_top = 3.0
+	style.texture_margin_right = 3.0
+	style.texture_margin_bottom = 3.0
+	return style
 
 func _layout_safe_area() -> void:
 	# The logical 9:16 court stays letterboxed. Transform device pixels to UI units.
@@ -235,8 +277,9 @@ func _hp_bar(pos: Vector2, color: Color) -> ProgressBar:
 	background.set_border_width_all(1)
 	var fill: StyleBoxFlat = StyleBoxFlat.new()
 	fill.bg_color = color
-	bar.add_theme_stylebox_override("background", background)
-	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", _texture_style("hp_base") if ui_textures.has("hp_base") else background)
+	var fill_name: String = "hp_enemy" if color == Color("ef7869") else "hp_player"
+	bar.add_theme_stylebox_override("fill", _texture_style(fill_name) if ui_textures.has(fill_name) else fill)
 	root.add_child(bar)
 	bar.size = Vector2(314, 8)
 	return bar
@@ -264,7 +307,7 @@ func _build_result_panel() -> void:
 	style.bg_color = Color("0b1020")
 	style.border_color = Color("ffd166")
 	style.set_border_width_all(2)
-	result_panel.add_theme_stylebox_override("panel", style)
+	result_panel.add_theme_stylebox_override("panel", _texture_style("result_panel") if ui_textures.has("result_panel") else style)
 	root.add_child(result_panel)
 	result_panel.hide()
 	result_title = _label("VICTORY", Vector2.ZERO, Vector2(272, 36), 28, Color("ffd166"))

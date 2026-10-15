@@ -19,6 +19,16 @@
     34
   ],
   "source_scale": 0.3715170278637771,
+  "swing_variants": {
+    "default": {
+      "animation": "swing",
+      "contact_frame": 3
+    },
+    "drive": {
+      "animation": "swing",
+      "contact_frame": 3
+    }
+  },
   "palette_colors": 32,
   "alpha_threshold": 128,
   "animations": {

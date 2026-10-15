@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "effect_new",
+  "sheet": "effect_new.png",
+  "cell_size": [32, 32],
+  "frame_count": 4,
+  "fps": 20,
+  "pivot": [16, 16],
+  "attach_to": "racket_contact",
+  "layer": "above_players",
+  "status": "design_contract_only"
+}

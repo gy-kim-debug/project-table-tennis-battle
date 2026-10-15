@@ -267,6 +267,8 @@ func _test_scene_battle() -> void:
 	check(battle.ui.enemy_hp_bar.size.y <= 8 and battle.ui.player_hp_bar.size.y <= 8, "HP bars fit reserved 8px rows")
 	var visual_ids: Array = [battle.court.layout["player_character"], battle.court.layout["enemy_character"]]
 	check(battle.court.player_actor.available() and battle.court.enemy_actor.available() and ResourceLoader.exists("res://assets/characters/%s/frames.tres" % visual_ids[0]) and ResourceLoader.exists("res://assets/characters/%s/frames.tres" % visual_ids[1]), "layout-selected character artwork loads")
+	check(battle.court.background_texture != null and battle.court.ball_texture != null and battle.court.shadow_texture != null and battle.court.visual_palette.has("court_surface"), "visual profile loads replaceable art and table colors")
+	check(battle.sound.cues.size() == 9, "audio profile loads every prototype sound cue")
 	var far_left: Vector2 = battle.court.project_point(Vector3(-1, 0, 0))
 	var far_right: Vector2 = battle.court.project_point(Vector3(1, 0, 0))
 	var near_left: Vector2 = battle.court.project_point(Vector3(-1, 1, 0))

@@ -5,10 +5,9 @@ const Clock = preload("res://scripts/core/game_clock.gd")
 const Combat = preload("res://scripts/core/battle_manager.gd")
 const Balance = preload("res://resources/balance/battle.tres")
 const Config = preload("res://resources/balance/timing.tres")
-const Pattern = preload("res://resources/patterns/basic_return.tres")
 
 var clock: RefCounted = Clock.new()
-var combat: RefCounted = Combat.new(Balance, Config, Pattern, null, Catalog.difficulties()[1], Catalog.all())
+var combat: RefCounted = Combat.new(Balance, Config, Catalog.all()[0], null, Catalog.difficulties()[1], Catalog.all())
 var rally: RefCounted = combat.rally
 var manually_paused: bool = false
 var backgrounded: bool = false
@@ -91,7 +90,7 @@ func _on_judged(grade: int, error_ms: float) -> void:
 	ui.show_judgement(grade, error_ms, float(clock.now_us()) / 1000000.0)
 	if combat.state != Combat.State.BATTLE_END:
 		court.swing_at = float(clock.now_us()) / 1000000.0
-		court.animate_player(grade, court.swing_at, float(rally.contact_us) / 1000000.0)
+		court.animate_player(grade, court.swing_at, float(rally.contact_us) / 1000000.0, String(rally.pattern.player_swing_pose))
 	sound.play_cue("miss" if grade == 3 else "swing")
 
 func _on_returned(_count: int) -> void:
@@ -115,7 +114,7 @@ func _refresh() -> void:
 func _on_enemy_defended(grade: int) -> void:
 	ui.show_enemy_defense(grade, float(clock.now_us()) / 1000000.0)
 	court.enemy_swing_at = float(clock.now_us()) / 1000000.0
-	court.animate_enemy(grade, court.enemy_swing_at)
+	court.animate_enemy(grade, court.enemy_swing_at, String(rally.pattern.enemy_swing_pose))
 	sound.play_cue("good" if grade < 3 else "miss")
 
 func _on_damaged(side: int, amount: int, _remaining: int) -> void:

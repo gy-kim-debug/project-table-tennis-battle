@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/pattern_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+pattern_id = "pattern_new"
+display_name = "NEW SHOT"
+incoming_seconds = 1.25
+return_seconds = 0.85
+bounce_fraction = 0.62
+start_point = Vector3(1, 0, 40)
+hit_point = Vector3(-1, 1, 16)
+arc_height = 34.0
+pattern_difficulty = 10.0
+strong_attack = false
+travel_exponent = 1.0
+lateral_sway = 0.0
+player_swing_pose = "drive"
+enemy_swing_pose = "default"

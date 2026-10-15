@@ -12,6 +12,11 @@ func run(check: Callable) -> void:
 			var image: Image = Image.create_empty(128, 128, false, Image.FORMAT_RGBA8)
 			image.fill(Color(float(i) / 6.0, 0, 0, 1))
 			frames.add_frame(entry[0], ImageTexture.create_from_image(image))
+	frames.add_animation(&"drive_alt")
+	frames.set_animation_speed(&"drive_alt", 10.0)
+	frames.set_animation_loop(&"drive_alt", false)
+	for i in range(5):
+		frames.add_frame(&"drive_alt", frames.get_frame_texture(&"swing", i))
 	var actor: RefCounted = Animator.new()
 	actor.frames = frames
 	check.call(not actor.has_front_layer(), "legacy whole-character frames work without a front-arm layer")
@@ -22,6 +27,12 @@ func run(check: Callable) -> void:
 	check.call(actor.front_texture_at(1.0) == frames.get_frame_texture(&"swing", 3), "front arm shares logical swing contact frame")
 	check.call(actor.index_at(0.85) == 0, "swing begins before contact")
 	check.call(actor.index_at(1.0) == 3, "swing contact pose matches logical contact time")
+	actor.swing_variants = {"alt": {"animation": "drive_alt", "contact_frame": 2}}
+	actor.swing_at(1.5, "alt")
+	check.call(actor.animation == &"drive_alt" and actor.index_at(1.5) == 2, "named swing pose uses its own contact frame")
+	actor.swing_at(1.8, "missing")
+	check.call(actor.animation == &"swing" and actor.index_at(1.8) == 3, "unknown swing pose falls back to standard swing")
+	actor.swing_at(1.0)
 	var frozen: int = actor.index_at(1.05)
 	check.call(actor.index_at(1.05) == frozen, "paused game time freezes sprite frame")
 	actor.index_at(1.16)

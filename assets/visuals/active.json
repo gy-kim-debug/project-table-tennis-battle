@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "prototype_default",
+  "background": "res://assets/backgrounds/background_main.png",
+  "ball": "res://assets/ball/ball_main.png",
+  "shadow": "res://assets/ball/ball_shadow.png",
+  "palette": {
+    "ink": "0b1020",
+    "court_shadow": "0b1322",
+    "court_apron": "10283b",
+    "court_leg": "101a2c",
+    "court_surface": "146d7a",
+    "court_far": "168397",
+    "court_near": "176f7e",
+    "court_stripe": "187d89",
+    "court_line": "e4f3d7",
+    "court_center_line": "b8e8dc",
+    "court_apron_line": "14364b",
+    "net_back": "09263c",
+    "net_mesh": "388ba3",
+    "net_bottom": "081b2d",
+    "marker": "b9dfcb",
+    "ball_normal": "fff4d2",
+    "ball_strong": "ffd166",
+    "player": "54c7e6",
+    "opponent": "ef7869",
+    "skin": "e6b997",
+    "racket_handle": "ba9c74",
+    "damage": "ff8a73",
+    "hud_scrim": "0b1020c7"
+  }
+}

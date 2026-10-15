@@ -19,6 +19,12 @@
     54
   ],
   "source_scale": 0.3438395415472779,
+  "swing_variants": {
+    "default": {
+      "animation": "swing",
+      "contact_frame": 3
+    }
+  },
   "palette_colors": 32,
   "alpha_threshold": 128,
   "animations": {

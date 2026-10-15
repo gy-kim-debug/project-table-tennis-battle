@@ -93,6 +93,7 @@ def build() -> None:
     manifest["frames"] = [entry for entry in manifest["frames"] if entry["animation"] != "swing"] + records
     manifest["frames"].sort(key=lambda entry: (list(manifest["animations"]).index(entry["animation"]), entry["index"]))
     manifest["contact_point"] = contact_point
+    manifest["swing_variants"]["drive"] = {"animation": "swing", "contact_frame": 3}
     manifest["swing_source"] = str(SOURCE.relative_to(ROOT))
     manifest["swing_source_size"] = [rgba.shape[1], rgba.shape[0]]
     manifest["swing_source_scale"] = scale

@@ -80,6 +80,7 @@ def build(role):
  contact_point=[int(round(float(xs.mean()))),int(round(float(ys.mean())))]
  manifest={'role':role,'source':str(source.relative_to(ROOT)),'source_size':[rgba.shape[1],rgba.shape[0]],
  'frame_size':[128,128],'pivot':pivot,'contact_frame':3,'contact_point':contact_point,'source_scale':scale,
+ 'swing_variants':{'default':{'animation':'swing','contact_frame':3}},
  'palette_colors':32,'alpha_threshold':128,'animations':{a:{'count':COUNTS[a],'fps':FPS[a],'loop':a=='idle'} for a in COUNTS},
  'validation':'dimensions/binary alpha/full silhouettes/common foot baseline/unique frames verified; visual review pending',
  'frames':records}

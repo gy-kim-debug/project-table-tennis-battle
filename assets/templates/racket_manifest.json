@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "racket_new",
+  "size": [32, 32],
+  "grip_pivot": [16, 26],
+  "face_center": [16, 10],
+  "layer": "arm_front",
+  "status": "design_contract_only"
+}

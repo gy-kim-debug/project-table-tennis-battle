@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "patterns": [
+    "res://resources/patterns/basic_return.tres",
+    "res://resources/patterns/fast_smash.tres",
+    "res://resources/patterns/high_lob.tres",
+    "res://resources/patterns/low_drive.tres",
+    "res://resources/patterns/tempo_change.tres"
+  ],
+  "difficulties": [
+    "res://resources/difficulty/easy.tres",
+    "res://resources/difficulty/normal.tres",
+    "res://resources/difficulty/hard.tres"
+  ]
+}

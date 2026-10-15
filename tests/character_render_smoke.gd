@@ -50,6 +50,14 @@ func _run() -> void:
 	var cover_point: Vector2i = Vector2i(110, 235)
 	var rendered: Color = root.get_texture().get_image().get_pixelv(cover_point)
 	assert(rendered.is_equal_approx(Color("168397")))
+	var original_near_color: String = String(battle.court.visual_palette["court_near"])
+	battle.court.visual_palette["court_near"] = "ff00ff"
+	battle.court.queue_redraw()
+	await RenderingServer.frame_post_draw
+	assert(root.get_texture().get_image().get_pixelv(Vector2i(80, 350)).is_equal_approx(Color("ff00ff")))
+	battle.court.visual_palette["court_near"] = original_near_color
+	battle.court.queue_redraw()
+	await RenderingServer.frame_post_draw
 	var front: SpriteFrames = SpriteFrames.new()
 	front.remove_animation(&"default")
 	for entry in [[&"idle", 4, 4.0], [&"swing", 6, 20.0], [&"miss", 4, 10.0]]:

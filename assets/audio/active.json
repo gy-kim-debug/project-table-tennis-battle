@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "prototype_sounds",
+  "cues": {
+    "swing": "res://assets/audio/swing.wav",
+    "good": "res://assets/audio/good.wav",
+    "perfect": "res://assets/audio/perfect.wav",
+    "miss": "res://assets/audio/miss.wav",
+    "bounce": "res://assets/audio/bounce.wav",
+    "damage": "res://assets/audio/damage.wav",
+    "smash": "res://assets/audio/smash.wav",
+    "victory": "res://assets/audio/victory.wav",
+    "defeat": "res://assets/audio/defeat.wav"
+  }
+}

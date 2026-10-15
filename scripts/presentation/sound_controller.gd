@@ -1,23 +1,19 @@
 extends Node
 
-const CUES: Dictionary = {
-	"swing": preload("res://assets/audio/swing.wav"),
-	"good": preload("res://assets/audio/good.wav"),
-	"perfect": preload("res://assets/audio/perfect.wav"),
-	"miss": preload("res://assets/audio/miss.wav"),
-	"bounce": preload("res://assets/audio/bounce.wav"),
-	"damage": preload("res://assets/audio/damage.wav"),
-	"smash": preload("res://assets/audio/smash.wav"),
-	"victory": preload("res://assets/audio/victory.wav"),
-	"defeat": preload("res://assets/audio/defeat.wav"),
-}
-
+var cues: Dictionary = {}
 var enabled: bool = true
 var players: Array[AudioStreamPlayer] = []
 var next_player: int = 0
 var cue_counts: Dictionary = {}
 
 func _ready() -> void:
+	var profile_path: String = "res://assets/audio/active.json"
+	if FileAccess.file_exists(profile_path):
+		var profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(profile_path))
+		for cue in profile.get("cues", {}):
+			var path: String = String(profile["cues"][cue])
+			if ResourceLoader.exists(path):
+				cues[cue] = load(path) as AudioStream
 	var settings: ConfigFile = ConfigFile.new()
 	if settings.load("user://settings.cfg") == OK:
 		enabled = bool(settings.get_value("audio", "enabled", true))
@@ -28,7 +24,7 @@ func _ready() -> void:
 		players.append(player)
 
 func play_cue(name: String) -> void:
-	if not enabled or not CUES.has(name):
+	if not enabled or not cues.has(name):
 		return
 	cue_counts[name] = int(cue_counts.get(name, 0)) + 1
 	# Headless tests verify dispatch without creating an audio playback thread.
@@ -37,7 +33,7 @@ func play_cue(name: String) -> void:
 	var player: AudioStreamPlayer = players[next_player]
 	next_player = (next_player + 1) % players.size()
 	player.stop()
-	player.stream = CUES[name]
+	player.stream = cues[name]
 	player.play()
 
 func set_enabled(value: bool, persist: bool = true) -> void:

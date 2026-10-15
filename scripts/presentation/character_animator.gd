@@ -6,12 +6,14 @@ var front_frames: SpriteFrames
 var pivot: Vector2 = Vector2(64, 116)
 var racket_contact: Vector2 = Vector2(112, 52)
 var contact_frame: int = 3
+var swing_variants: Dictionary = {}
 var animation: StringName = &"idle"
 var started_us: int = 0
 var last_now: float = 0.0
 var hold_last: bool = false
 
 func configure(role: String) -> bool:
+	swing_variants.clear()
 	var root: String = "res://assets/characters/%s/" % role
 	var whole_path: String = root + "frames.tres"
 	var back_path: String = root + "body_back.tres"
@@ -42,6 +44,7 @@ func configure(role: String) -> bool:
 			var anchor: Array = metadata.get("pivot", [64, 116])
 			pivot = Vector2(anchor[0], anchor[1])
 			contact_frame = int(metadata.get("contact_frame", 3))
+			swing_variants = metadata.get("swing_variants", {})
 	return available()
 
 func available() -> bool:
@@ -50,7 +53,7 @@ func available() -> bool:
 func _matching_layer(candidate: SpriteFrames) -> bool:
 	if candidate == null or not available():
 		return false
-	for name in [&"idle", &"swing", &"miss"]:
+	for name in frames.get_animation_names():
 		if not candidate.has_animation(name) or candidate.get_frame_count(name) != frames.get_frame_count(name) or not is_equal_approx(candidate.get_animation_speed(name), frames.get_animation_speed(name)) or candidate.get_animation_loop(name) != frames.get_animation_loop(name):
 			return false
 		for frame in range(frames.get_frame_count(name)):
@@ -66,13 +69,17 @@ func reset() -> void:
 	started_us = 0
 	hold_last = false
 
-func swing_at(contact_time: float) -> void:
+func swing_at(contact_time: float, pose: String = "default") -> void:
 	if not available():
 		return
-	animation = &"swing"
+	var variant: Dictionary = swing_variants.get(pose, {})
+	var chosen: StringName = StringName(String(variant.get("animation", "swing")))
+	animation = chosen if frames.has_animation(chosen) else &"swing"
+	var chosen_contact_frame: int = int(variant.get("contact_frame", contact_frame)) if animation == chosen else contact_frame
+	chosen_contact_frame = clampi(chosen_contact_frame, 0, frames.get_frame_count(animation) - 1)
 	hold_last = false
 	# The contact pose aligns to the logical contact time; it cannot change judgement.
-	started_us = roundi(contact_time * 1000000.0) - roundi(float(contact_frame) * 1000000.0 / frames.get_animation_speed(&"swing"))
+	started_us = roundi(contact_time * 1000000.0) - roundi(float(chosen_contact_frame) * 1000000.0 / frames.get_animation_speed(animation))
 
 func miss_at(now: float) -> void:
 	if not available():

@@ -3,6 +3,8 @@ extends Resource
 @export var display_name: String = "BASIC RETURN"
 @export_range(0, 100) var pattern_difficulty: float = 10.0
 @export var strong_attack: bool = false
+@export var player_swing_pose: String = "drive"
+@export var enemy_swing_pose: String = "default"
 @export_range(0.3, 3.0) var travel_exponent: float = 1.0
 @export_range(-0.5, 0.5) var lateral_sway: float = 0.0
 @export var pattern_id: String = "pattern_01"

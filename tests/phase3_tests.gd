@@ -115,7 +115,7 @@ func _test_patterns() -> void:
 				timeout.advance(800000)
 				timeout.advance(timeout.target_us + 180001)
 				check(timeout.state == Rally.State.RALLY_RESULT, "all patterns expire without input")
-	check(ids.size() == 5 and durations.size() == 5, "five unique IDs and distinct tempos")
+	check(ids.size() == patterns.size() and durations.size() >= 5, "catalog patterns have unique IDs and distinct tempos")
 	check(patterns[1].strong_attack and not patterns[0].strong_attack, "smash attack strength is explicit data")
 	check(patterns[2].arc_height > patterns[0].arc_height and patterns[3].arc_height < patterns[0].arc_height, "lob and drive height differences")
 	check(patterns[4].sample(0.5).y > 0.5 and is_equal_approx(patterns[0].sample(0.5).y, 0.5), "tempo-change progress has a distinct rhythm")
@@ -127,7 +127,7 @@ func _test_ai() -> void:
 	var patterns: Array[Resource] = Catalog.all()
 	var profiles: Array[Resource] = Catalog.difficulties()
 	for profile in profiles:
-		check(profile.is_valid(), "valid difficulty " + profile.difficulty_id)
+		check(profile.is_valid(patterns.size()), "valid difficulty " + profile.difficulty_id)
 		var ai: RefCounted = Enemy.new(config, profile)
 		var replay: RefCounted = Enemy.new(config, profile)
 		var seen: Dictionary = {}
@@ -136,15 +136,24 @@ func _test_ai() -> void:
 			seen[pattern.pattern_id] = true
 			check(pattern == replay.select_pattern(patterns, profile), "seeded weighted selection")
 			check(ai.defend(100, 40, pattern.pattern_difficulty) == replay.defend(100, 40, pattern.pattern_difficulty), "seeded selection/defense sequence")
-		check(seen.size() == 5, "each profile can use all five patterns")
+		check(seen.size() >= 5, "each profile reaches the original pattern set")
 	var single: Resource = profiles[1].duplicate(true)
-	single.pattern_weights = PackedFloat32Array([0, 0, 1, 0, 0])
+	var one_weight := PackedFloat32Array()
+	one_weight.resize(patterns.size())
+	one_weight[2] = 1.0
+	single.pattern_weights = one_weight
 	var chosen: RefCounted = Enemy.new(config, single)
 	for i in range(20):
 		check(chosen.select_pattern(patterns, single) == patterns[2], "zero-weight patterns are never selected")
-	single.pattern_weights = PackedFloat32Array([0, 0, 0, 0, 0])
+	var zero_weights := PackedFloat32Array()
+	zero_weights.resize(patterns.size())
+	single.pattern_weights = zero_weights
 	check(not single.is_valid(), "reject all-zero weights")
-	single.pattern_weights = PackedFloat32Array([-1, 1, 1, 1, 1])
+	var negative_weights := PackedFloat32Array()
+	negative_weights.resize(patterns.size())
+	negative_weights.fill(1.0)
+	negative_weights[0] = -1.0
+	single.pattern_weights = negative_weights
 	check(not single.is_valid(), "reject negative weights")
 	var easy: RefCounted = Enemy.new(config, profiles[0])
 	var hard: RefCounted = Enemy.new(config, profiles[2])

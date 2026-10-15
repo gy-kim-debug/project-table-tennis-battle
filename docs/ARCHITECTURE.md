@@ -156,3 +156,7 @@ PNG는 실제 128셀, lossless/mipmaps 없음, 프로젝트 Nearest. 원본/문�
 ## Phase 5 표시 및 오디오
 
 Battle(Node)는 전투/랠리 이벤트를 CourtView와 SoundController에 전달한다. CourtView는 Perfect 접촉 시 정지 시작·종료 게임 시각을 보관하고, 해당 구간에서만 직전 표시 시각으로 공·캐릭터를 그린다. 잔상, 충격파, 피격 파편, 승패 효과도 표시 상태에만 존재한다. 재시작하면 효과/결과 자세를 초기화한다. `SoundController`는 짧은 WAV 9종과 4개 플레이어를 소유하며 Pause UI 신호로 음소거를 저장한다. Headless에서는 오디오 재생을 생략하고 이벤트 호출을 검사한다. 수동 일시정지와 앱 복귀 정책, 실제 음량은 기기에서 추가 검수한다.
+
+## 표준 에셋 키트 v1
+
+`assets/table/layout.json`은 화면 투영과 두 캐릭터 ID, `assets/visuals/active.json`은 배경·공·그림자 경로와 탁구대/이펙트 팔레트, `assets/audio/active.json`은 이벤트별 효과음 경로, `resources/catalog.json`은 패턴·난이도 Resource 순서를 선언한다. `CharacterAnimator`는 캐릭터 manifest의 자세 이름과 접촉 프레임을 읽고, `PatternData`는 플레이어/상대의 Swing 자세 ID를 전달한다. 추가 에셋의 크기·피벗·알파·패턴 가중치는 `tools/assets/validate_asset_contract.py`에서 검사한다. 전투 판정 모델은 이 시각 설정을 참조하지 않는다. 제작 및 연결 상태는 [표준 에셋 키트](ASSET_TEMPLATE.md)에 기록한다.

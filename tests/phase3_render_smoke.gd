@@ -78,7 +78,7 @@ func _run() -> void:
 		battle.rally.enemy = fixture
 		await tap(Vector2(105, 335))
 		assert(not battle.clock.paused)
-		for pattern_index in range(5):
+		for pattern_index in range(Catalog.all().size()):
 			fixture.pattern_index = pattern_index
 			battle.restart()
 			await jump_to(battle.rally.phase_start_us + 800000)
@@ -87,6 +87,8 @@ func _run() -> void:
 			await jump_to(battle.rally.phase_start_us + roundi(battle.rally.incoming_duration * 0.3 * 1000000))
 			await capture("phase3-" + battle.combat.difficulty.difficulty_id + "-" + battle.rally.pattern.pattern_id)
 			await swing_at_target()
+			if battle.rally.state != Rally.State.PLAYER_RETURN or battle.combat.pressure.value != 35:
+				push_error("pattern=%s profile=%s state=%s pressure=%d target=%d now=%d" % [battle.rally.pattern.pattern_id, battle.combat.difficulty.difficulty_id, battle.rally.state, battle.combat.pressure.value, battle.rally.target_us, battle.clock.now_us()])
 			assert(battle.rally.state == Rally.State.PLAYER_RETURN and battle.combat.pressure.value == 35)
 			await jump_to(battle.rally.phase_start_us + roundi(battle.rally.pattern.return_seconds * 1000000))
 			assert(battle.combat.pressure.value == 25)
@@ -126,5 +128,5 @@ func _run() -> void:
 	battle.queue_free()
 	await process_frame
 	await create_timer(0.6).timeout
-	print("PHASE 3 RENDER PASS: 5 patterns x 3 profiles, actual dropdown routing, pressure, native-AI victory and defeat")
+	print("PHASE 3 RENDER PASS: %d patterns x %d profiles, actual dropdown routing, pressure, native-AI victory and defeat" % [Catalog.all().size(), Catalog.difficulties().size()])
 	quit()

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "ui_new",
+  "reference_canvas": [360, 640],
+  "text_remains_runtime_text": true,
+  "layers": ["world_effects", "hud", "pause_menu", "result"],
+  "status": "design_contract_only"
+}

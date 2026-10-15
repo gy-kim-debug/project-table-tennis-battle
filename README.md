@@ -48,7 +48,7 @@ godot --path . --audio-driver Dummy --max-fps 60 --script tests/phase2_render_sm
 
 화면 캡처는 각각 `user://phase1-smoke/`, `user://phase2-smoke/`에 저장된다. `-- /절대/출력/폴더`를 뒤에 붙이면 출력 폴더를 지정할 수 있다. `render_smoke.gd`는 자동 입력 전용 테스트이며 일반 플레이에 자동 입력이 포함되지 않는다.
 
-이번 환경: headless **2,640개 검사 통과**. Linux 가상 X11/OpenGL에서 Phase 3의 5패턴×3난이도, 축소된 탁구대/캐릭터 레이어, Phase 5의 Perfect/피격/승패/사운드 토글 화면 검사를 통과했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
+이번 환경: headless 자동 검사와 Linux 가상 X11/OpenGL 화면 검사를 통과했다. 표준 에셋 계약도 별도 검증했다. 테스트 시계로 장면을 재현했으며 사람의 직접 플레이와 iPhone 체감은 사용자 요청에 따라 개발 후에 확인한다.
 
 ## 데이터 및 구조
 - `resources/balance/timing.tres`: 판정창(ms), 터치 보정(ms), 서브 대기(s).
@@ -83,6 +83,8 @@ AI 수비 점수는 난이도별 능력(55/65/75) + 난수[-45,45] − 공격 �
 [Phase 3 검증](docs/PHASE3_VALIDATION.md) / [나중에 실행할 사용자 검수](docs/USER_QA.md).
 캐릭터 2종의 128×128 Idle/Swing/Miss 총 28프레임, 공·그림자·배경 PNG와 플레이어 등 뒤의 약간 높은 근접 구도를 연결했다. 현재 오른손잡이 플레이어는 화면 오른쪽 전경, 오른손잡이 상대는 왼쪽 원경에 선다. 탁구대·네트는 공과 같은 투영 좌표에서 그려 크기를 조절한다.
 플레이어 Swing은 낮은 백스윙에서 위로 감아 올리는 오른손 포핸드 드라이브 6프레임이다.
+
+새 캐릭터·스윙·공 궤적·난이도·배경·공·탁구대 색·효과음을 추가할 때는 [표준 에셋 키트 v1](docs/ASSET_TEMPLATE.md)의 템플릿과 `python3 tools/assets/validate_asset_contract.py` 검사를 사용한다. 독립 라켓 및 새로운 상판 표면 그림은 아직 렌더러 연결 전이다.
 
 
 ## Phase 4 캐릭터
